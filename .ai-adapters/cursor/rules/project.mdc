@@ -1,0 +1,22 @@
+---
+description: Project AI Guidelines
+globs: ["**/*"]
+---
+
+# Project AI Guidelines
+
+Please refer to the project root's AGENTS.md for complete development guidelines.
+
+## Quick Reference
+
+- Knowledge Base: `context/`
+- Workflow: `workflow/`
+- Experience: `context/experience/INDEX.md`
+
+## Key Rules
+
+<!-- Add project-specific rules here -->
+
+1. Follow coding conventions in `context/tech/conventions/`
+2. Check experience index before implementing
+3. Use TDD for all implementations
