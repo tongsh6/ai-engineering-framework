@@ -219,6 +219,31 @@ cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
 - 按需添加复杂度
 - 定期清理无用配置
 
+## 分支策略
+
+| 分支 | 用途 | 说明 |
+|------|------|------|
+| `main` | 稳定版本 | 用户默认获取，始终保持可用 |
+| `develop` | 开发分支 | 新功能集成测试 |
+| `feature/*` | 功能分支 | 从 develop 创建，完成后合并回 develop |
+
+**版本标签**：使用语义化版本 `v1.0.0`, `v1.1.0` 等。
+
+```bash
+# 获取特定版本
+npx degit tongsh6/ai-engineering-framework#v1.0.0 my-project
+
+# 获取最新开发版
+npx degit tongsh6/ai-engineering-framework#develop my-project
+```
+
+### 贡献流程
+
+1. Fork 仓库
+2. 从 `develop` 创建 feature 分支
+3. 提交 PR 到 `develop`
+4. 维护者定期将 `develop` 合并到 `main` 并打标签
+
 ## 参考资源
 
 - [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - 工具无关的 AI 指南标准
