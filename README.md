@@ -31,11 +31,11 @@
 
 ```bash
 # 方式 1：degit（推荐）
-npx degit your-org/ai-engineering-framework my-project/.ai-framework
+npx degit tongsh6/ai-engineering-framework my-project/.ai-framework
 cd my-project && mv .ai-framework/* .
 
 # 方式 2：手动复制
-git clone https://github.com/your-org/ai-engineering-framework
+git clone https://github.com/tongsh6/ai-engineering-framework
 cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
 ```
 
@@ -43,7 +43,7 @@ cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
 
 1. **编辑 AGENTS.md**：填入你的项目概述和核心规范
 2. **填充 context/**：添加业务知识、技术文档、开发规范
-3. **配置 workflow/**：根据项目需要调整工作流阶段
+3. **（可选）配置 workflow/**：根据项目需要调整工作流阶段，或使用 OpenSpec 替代
 
 ## 目录结构
 
@@ -57,21 +57,47 @@ cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
 │   │   ├── domain-model.md      # 领域模型
 │   │   └── glossary.md          # 术语表
 │   ├── tech/                    # 技术知识
-│   │   ├── architecture.md      # 架构设计
+│   │   ├── architecture/        # 架构设计
+│   │   │   └── README.md        # 架构概览
+│   │   ├── api/                 # API 文档
+│   │   │   └── README.md        # API 设计指南
 │   │   └── conventions/         # 开发规范
+│   │       ├── backend.md       # 后端规范
+│   │       ├── frontend.md      # 前端规范
+│   │       ├── testing.md       # 测试规范
+│   │       └── database.md      # 数据库规范
 │   └── experience/              # 经验知识（复利）
-│       ├── INDEX.md             # 经验索引
-│       └── lessons/             # 经验文档
+│       ├── INDEX.md             # 经验索引（可检索）
+│       ├── lessons/             # 经验文档
+│       │   └── _template.md     # 经验模板
+│       └── reports/             # 审计报告
+│           └── _template.md     # 报告模板
 │
-├── workflow/                    # 工作流定义（多 Agent 协作）
+├── workflow/                    # 工作流定义（可选，见下方说明）
 │   ├── INDEX.md                 # 工作流导航
 │   └── phases/                  # 阶段定义
+│       ├── proposal.md          # 提案阶段
+│       ├── design.md            # 设计阶段
+│       ├── implement.md         # 实现阶段
+│       └── review.md            # 审查阶段
 │
 └── .ai-adapters/                # 工具适配层（可选）
     ├── cursor/                  # Cursor IDE
     ├── copilot/                 # GitHub Copilot
     └── opencode/                # OpenCode
 ```
+
+### workflow/ 是可选的
+
+`workflow/` 目录提供了一套通用的多阶段工作流（提案→设计→实现→审查）。但你可以：
+
+1. **完全不使用**：对于简单项目，直接在 AGENTS.md 定义任务路由规则即可
+2. **使用替代方案**：如 [OpenSpec](https://openspec.dev) 提供更完整的规范驱动开发流程
+3. **自定义阶段**：根据项目需要修改或添加阶段
+
+推荐策略：
+- 新项目 → 先只用 `context/`，按需添加 `workflow/`
+- 已有规范流程 → 用 OpenSpec 或自定义方案替代 `workflow/`
 
 ## 核心概念
 
@@ -97,7 +123,7 @@ cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
 触发 → 路由 → 阶段执行 → 验证 → 下一阶段/完成
 ```
 
-**内置阶段**：
+**内置阶段**（可选，可用 OpenSpec 等替代）：
 - `proposal` - 提案阶段
 - `design` - 设计阶段
 - `implement` - 实现阶段
