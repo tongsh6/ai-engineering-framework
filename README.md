@@ -18,9 +18,9 @@ AI coding assistants (Cursor, Copilot, Claude Code, etc.) can read files, but th
 
 **AIEF** gives your project a structured entry point - an `AGENTS.md` file plus a `context/` knowledge base - so AI can load the right context consistently.
 
-`AGENTS.md` is a cross-tool convention used by mainstream AI coding tools. No vendor lock-in.
+`AGENTS.md` is a cross-tool convention used by AI coding tools (some read it natively; others can be instructed to start from it). No vendor lock-in.
 
-If your tool does not read `AGENTS.md` by default, enable an adapter (see `.ai-adapters/`) or instruct the tool to start from `AGENTS.md`.
+Most of the time you do not need adapters. If your tool does not read `AGENTS.md` by default, enable an adapter (see `.ai-adapters/`) or instruct the tool to start from `AGENTS.md`.
 
 AIEF focuses on stable collaboration context, not model cleverness.
 
@@ -57,6 +57,8 @@ Level cheat sheet for retrofit:
 npx --yes @tongsh6/aief-init@latest new
 ```
 
+This creates `AGENTS.md` and `context/INDEX.md`.
+
 Step 2 - Open the generated `AGENTS.md` template and fill in:
 
 1. One-line project description
@@ -72,7 +74,7 @@ Step 3 - Verify in 30 seconds:
 
 Optional: Verify behavior in your AI tool:
 
-- Ask: "Summarize the project rules from `AGENTS.md`." It should mention the constraints you wrote.
+- Ask: "List the key constraints from `AGENTS.md` as 3 bullets." It should match what you wrote.
 
 Done. Start coding with your AI assistant from this fixed entry point.
 
@@ -84,10 +86,12 @@ Done. Start coding with your AI assistant from this fixed entry point.
 npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 ```
 
+This creates `AGENTS.md`, `context/INDEX.md`, and `context/tech/REPO_SNAPSHOT.md`.
+
 Step 2 - Check generated files:
 
 1. `AGENTS.md` - fill in your project info
-2. `context/tech/REPO_SNAPSHOT.md` - review auto-detected stack, directory layout, and CI clues
+2. `context/tech/REPO_SNAPSHOT.md` - review auto-detected stack, directory layout, and CI config hints (GitHub Actions, scripts, Makefile, etc.)
 
 Step 3 - Verify in 30 seconds:
 
@@ -97,7 +101,7 @@ Step 3 - Verify in 30 seconds:
 
 Optional: Verify behavior in your AI tool:
 
-- Ask: "Summarize the project rules from `AGENTS.md`." It should mention the constraints you wrote.
+- Ask: "List the key constraints from `AGENTS.md` as 3 bullets." It should match what you wrote.
 
 Done. Start coding with your AI assistant from this fixed entry point.
 
