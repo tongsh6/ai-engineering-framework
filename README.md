@@ -30,13 +30,24 @@
 ### 安装
 
 ```bash
-# 方式 1：degit（推荐）
-npx degit tongsh6/ai-engineering-framework my-project/.ai-framework
-cd my-project && mv .ai-framework/* .
+# 方式 1：无拷贝前置（推荐，在你的目标仓库根目录执行）
+# New Project
+npx --yes @tongsh6/aief-init@latest new
 
-# 方式 2：手动复制
+# Existing Project (Retrofit)
+npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+
+# 方式 2：手动复制（可选，适合离线/内网场景）
 git clone https://github.com/tongsh6/ai-engineering-framework
-cp -r ai-engineering-framework/{AGENTS.md,context,workflow,init,templates,scripts,records} your-project/
+
+# 最小复制：只插入口
+cp -r ai-engineering-framework/{AGENTS.md,context} your-project/
+
+# 可选增强：按需复制初始化与模板/脚本
+cp -r ai-engineering-framework/{init,templates,scripts,records} your-project/
+
+# workflow/ 是可选的
+cp -r ai-engineering-framework/workflow your-project/
 ```
 
 ### 初始化项目
