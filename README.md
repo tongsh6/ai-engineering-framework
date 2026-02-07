@@ -36,14 +36,38 @@ cd my-project && mv .ai-framework/* .
 
 # 方式 2：手动复制
 git clone https://github.com/tongsh6/ai-engineering-framework
-cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
+cp -r ai-engineering-framework/{AGENTS.md,context,workflow,init,templates,scripts,records} your-project/
 ```
 
 ### 初始化项目
 
-1. **编辑 AGENTS.md**：填入你的项目概述和核心规范
-2. **填充 context/**：添加业务知识、技术文档、开发规范
-3. **（可选）配置 workflow/**：根据项目需要调整工作流阶段，或使用 OpenSpec 替代
+初始化的目标不是“补齐文档”，而是先插入一个不会被忽略的稳定入口。
+
+两条初始化路径（强制区分）：
+- New Project Init：init/NEW_PROJECT_INIT.md
+- Existing Project Init（Retrofit）：init/EXISTING_PROJECT_INIT.md
+
+最小初始化产物（必须）：
+
+    AGENTS.md
+    context/
+        INDEX.md
+
+最小可复制模板：
+- templates/minimal/
+- templates/retrofit/
+
+可选：一条命令初始化（不改变现有代码结构，仅生成 AIEF 入口文件）：
+- New Project: node scripts/aief-init.mjs new
+- Existing Project (Retrofit): node scripts/aief-init.mjs retrofit --level L0+
+
+可选：无拷贝前置的一键运行（推荐用于推广/接入，短命令别名包）：
+- New Project: npx --yes @tongsh6/aief-init@latest new
+- Existing Project (Retrofit): npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+
+说明：
+- @tongsh6/aief-init 是短命令别名包
+- 官方全名包：@tongsh6/ai-engineering-framework-init
 
 ## 目录结构
 
