@@ -48,8 +48,6 @@ Level cheat sheet for retrofit:
 - `L0`: create the minimum entry files only
 - `L0+`: `L0` plus an auto-generated repo snapshot
 
-Package note: `@tongsh6/aief-init` is the short alias package. Canonical package: `@tongsh6/ai-engineering-framework-init`.
-
 ### Option A: New Project
 
 ```bash
@@ -67,6 +65,10 @@ Step 3 - Verify in 30 seconds:
 
 - `AGENTS.md` exists in project root
 - `context/INDEX.md` exists
+
+Optional: Verify behavior in your AI tool:
+
+- Ask: "Summarize project rules from `AGENTS.md`." It should quote or reference the file.
 
 Done. Start coding with your AI assistant from this fixed entry point.
 
@@ -89,6 +91,10 @@ Step 3 - Verify in 30 seconds:
 - `context/INDEX.md` exists
 - `context/tech/REPO_SNAPSHOT.md` exists (for `L0+`)
 
+Optional: Verify behavior in your AI tool:
+
+- Ask: "Summarize project rules from `AGENTS.md`." It should quote or reference the file.
+
 Done. Start coding with your AI assistant from this fixed entry point.
 
 ### Before / After
@@ -102,13 +108,21 @@ your-project/                    your-project/
                                  ├── context/
                                  │   ├── INDEX.md         <- knowledge base nav
                                  │   └── tech/
-                                 │       └── REPO_SNAPSHOT.md  <- auto-generated
+                                 │       └── REPO_SNAPSHOT.md  <- auto-generated (retrofit `L0+` only)
                                  └── ...
 ```
 
 A few files added. AI now has a stable, reusable way to read your project context.
 
 > **Manual install** (offline / intranet): `git clone` the AIEF repository, then copy `AGENTS.md` and `context/` into your project. See [init/](init/) for details.
+
+<details>
+<summary><strong>Package names</strong></summary>
+
+- Short alias package: `@tongsh6/aief-init`
+- Canonical package: `@tongsh6/ai-engineering-framework-init`
+
+</details>
 
 ## Core Concept
 

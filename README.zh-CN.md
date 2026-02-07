@@ -48,8 +48,6 @@ Retrofit 等级速记：
 - `L0`：仅生成最小入口文件
 - `L0+`：`L0` + 自动生成仓库快照
 
-包名说明：`@tongsh6/aief-init` 是短命令别名包；canonical 包名是 `@tongsh6/ai-engineering-framework-init`。
-
 ### 场景 A：新项目
 
 ```bash
@@ -67,6 +65,10 @@ npx --yes @tongsh6/aief-init@latest new
 
 - 项目根目录存在 `AGENTS.md`
 - 存在 `context/INDEX.md`
+
+可选：验证工具行为：
+
+- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并要求其引用/标注来源文件。
 
 完成。开始从这个固定入口发起 AI 协作。
 
@@ -89,6 +91,10 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 - 存在 `context/INDEX.md`
 - `L0+` 场景下存在 `context/tech/REPO_SNAPSHOT.md`
 
+可选：验证工具行为：
+
+- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并要求其引用/标注来源文件。
+
 完成。开始从这个固定入口发起 AI 协作。
 
 ### Before / After
@@ -102,13 +108,21 @@ your-project/                    your-project/
                                  ├── context/
                                  │   ├── INDEX.md         <- 知识库导航
                                  │   └── tech/
-                                 │       └── REPO_SNAPSHOT.md  <- 自动生成
+                                 │       └── REPO_SNAPSHOT.md  <- 自动生成（仅 retrofit `L0+`）
                                  └── ...
 ```
 
 增加少量入口文件后，AI 就有了稳定、可复用的项目读取路径。
 
 > **手动安装**（离线/内网场景）：`git clone` AIEF 仓库，然后将 `AGENTS.md` 和 `context/` 复制到你的项目。详见 [init/](init/)。
+
+<details>
+<summary><strong>包名说明</strong></summary>
+
+- 短命令别名包：`@tongsh6/aief-init`
+- canonical 包名：`@tongsh6/ai-engineering-framework-init`
+
+</details>
 
 ## 核心概念
 
