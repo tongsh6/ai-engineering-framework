@@ -1,4 +1,4 @@
-# AI Engineering Framework
+# AI Engineering Framework (AIEF)
 
 > 项目级上下文层，让 AI 编码助手真正理解你的代码库。
 
@@ -14,9 +14,11 @@
 
 ## 这是什么？
 
-AI 编码助手（Cursor、Copilot、Claude Code 等）每次开启会话时，对你的业务规则、架构决策和踩过的坑一无所知。
+AI 编码助手（Cursor、Copilot、Claude Code 等）可以读取代码文件，但通常缺少稳定的项目上下文：业务边界、架构决策和团队踩坑经验。
 
-**AI Engineering Framework** 为你的项目提供一个结构化入口 - 一个 `AGENTS.md` 文件加一个 `context/` 知识库 - 让 AI 能自动加载所需的上下文。不绑定任何工具，支持所有兼容 [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) 的 AI 工具。
+**AIEF** 为你的项目提供一个结构化入口 - 一个 `AGENTS.md` 文件加一个 `context/` 知识库 - 让 AI 稳定、持续地加载正确上下文。
+
+`AGENTS.md` 是被主流 AI 编码工具支持的跨工具约定，不绑定单一厂商。
 
 AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 
@@ -26,7 +28,27 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 - 项目规则在团队和工具之间统一
 - 可渐进接入（先最小可用，再按需扩展）
 
+## 它解决什么问题？
+
+在多数团队的日常 AI 开发里，常见问题是：
+
+- **规则分散** - prompt 与约定散落在个人习惯里
+- **上下文反复解释** - 每次任务都从部分理解重新开始
+- **知识不复利** - 决策与踩坑无法沉淀为团队资产
+- **新人接入脆弱** - 新成员无法复用既有 AI 协作模式
+
+本框架通过一个稳定的项目级入口解决这些问题。
+
 ## 5 分钟快速开始
+
+二选一即可。两条路径都不改你的业务代码结构。
+
+Retrofit 等级速记：
+
+- `L0`：仅生成最小入口文件
+- `L0+`：`L0` + 自动生成仓库快照
+
+包名说明：`@tongsh6/aief-init` 是短命令别名包；canonical 包名是 `@tongsh6/ai-engineering-framework-init`。
 
 ### 场景 A：新项目
 
@@ -35,27 +57,39 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 npx --yes @tongsh6/aief-init@latest new
 ```
 
-然后打开生成的 `AGENTS.md`，填写：
+第 2 步 - 打开生成的 `AGENTS.md` 模板，填写：
 
 1. 项目一句话介绍
 2. 核心约束（如：目录边界、关键规则）
 3. 常用命令（`build` / `test` / `run`）
 
-完成。开始用 AI 助手编码。
+第 3 步 - 30 秒验证：
+
+- 项目根目录存在 `AGENTS.md`
+- 存在 `context/INDEX.md`
+
+完成。开始从这个固定入口发起 AI 协作。
 
 ### 场景 B：已有项目（Retrofit）
 
 ```bash
 # 第 1 步 - 在项目根目录执行
+# L0+ 不改业务代码，同时生成仓库快照
 npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 ```
 
-然后检查：
+第 2 步 - 检查生成文件：
 
 1. `AGENTS.md` - 填入项目信息
-2. `context/tech/REPO_SNAPSHOT.md` - 检查自动生成的仓库快照
+2. `context/tech/REPO_SNAPSHOT.md` - 检查自动识别的技术栈、目录结构与 CI 线索
 
-完成。开始用 AI 助手编码。
+第 3 步 - 30 秒验证：
+
+- 项目根目录存在 `AGENTS.md`
+- 存在 `context/INDEX.md`
+- `L0+` 场景下存在 `context/tech/REPO_SNAPSHOT.md`
+
+完成。开始从这个固定入口发起 AI 协作。
 
 ### Before / After
 
@@ -72,19 +106,9 @@ your-project/                    your-project/
                                  └── ...
 ```
 
-加上少量入口文件后，AI 就能理解你的项目。
+增加少量入口文件后，AI 就有了稳定、可复用的项目读取路径。
 
-> **手动安装**（离线/内网场景）：`git clone` 本仓库，然后将 `AGENTS.md` 和 `context/` 复制到你的项目。详见 [init/](init/)。
-
-## 它解决什么问题？
-
-每次开启新的 AI 编码会话：
-
-- **上下文丢失** - AI 看不到你过去的决策、业务边界和编码规范
-- **知识不复利** - 你反复解释同样的事情，边际成本恒定
-- **工具碎片化** - 每个 AI 工具有不同的配置格式
-
-本框架用一个工具无关的统一入口解决以上三个问题。
+> **手动安装**（离线/内网场景）：`git clone` AIEF 仓库，然后将 `AGENTS.md` 和 `context/` 复制到你的项目。详见 [init/](init/)。
 
 ## 核心概念
 
@@ -98,7 +122,7 @@ AIEF 建立在三个长期存在的工程事实之上：
 
 - `AGENTS.md` 作为项目级 AI 入口
 - `context/` 作为长期上下文承载
-- `experience/` 作为经验复利机制
+- `context/experience/` 作为经验复利机制
 - `workflow/` 作为可选协作增强
 
 ## 仓库结构与阅读顺序
@@ -113,7 +137,7 @@ AIEF 建立在三个长期存在的工程事实之上：
 6. `workflow/`（可选）
 7. `.ai-adapters/`（按工具启用，可选）
 
-目录结构概览：
+精简目录概览：
 
 ```
 your-project/

@@ -1,4 +1,4 @@
-# AI Engineering Framework
+# AI Engineering Framework (AIEF)
 
 > A project-level context layer that makes AI coding assistants truly understand your codebase.
 
@@ -14,9 +14,11 @@ Get your project AI-ready in 5 minutes.
 
 ## What Is This?
 
-AI coding assistants (Cursor, Copilot, Claude Code, etc.) start every session with zero knowledge of your project's business rules, architecture decisions, and hard-won lessons.
+AI coding assistants (Cursor, Copilot, Claude Code, etc.) can read files, but they still miss stable project context: business boundaries, architecture decisions, and hard-won team lessons.
 
-**AI Engineering Framework** gives your project a structured entry point - an `AGENTS.md` file plus a `context/` knowledge base - so AI can automatically load what it needs. No vendor lock-in. Works with any AI tool that supports the [AGENTS.md standard](https://github.com/anthropics/claude-code/blob/main/AGENTS.md).
+**AIEF** gives your project a structured entry point - an `AGENTS.md` file plus a `context/` knowledge base - so AI can load the right context consistently.
+
+`AGENTS.md` is a cross-tool convention used by mainstream AI coding tools. No vendor lock-in.
 
 AIEF focuses on stable collaboration context, not model cleverness.
 
@@ -26,7 +28,27 @@ Why teams adopt it:
 - Shared project rules across people and tools
 - Incremental adoption (start small, expand when needed)
 
+## The Problem
+
+Most teams using AI in daily development hit the same issues:
+
+- **Rules are scattered** - prompts and conventions live in personal habits
+- **Context is repeatedly re-explained** - each task restarts from partial understanding
+- **Knowledge does not compound** - decisions and pitfalls are not captured as team assets
+- **Onboarding is fragile** - new members cannot reuse prior AI collaboration patterns
+
+This framework solves these with one stable, project-level entry point.
+
 ## 5-Minute Quick Start
+
+Choose one path. Both are non-invasive and do not change your business code structure.
+
+Level cheat sheet for retrofit:
+
+- `L0`: create the minimum entry files only
+- `L0+`: `L0` plus an auto-generated repo snapshot
+
+Package note: `@tongsh6/aief-init` is the short alias package. Canonical package: `@tongsh6/ai-engineering-framework-init`.
 
 ### Option A: New Project
 
@@ -35,27 +57,39 @@ Why teams adopt it:
 npx --yes @tongsh6/aief-init@latest new
 ```
 
-Then open the generated `AGENTS.md` and fill in:
+Step 2 - Open the generated `AGENTS.md` template and fill in:
 
 1. One-line project description
 2. Key constraints (e.g., directory boundaries, critical rules)
 3. Common commands (`build` / `test` / `run`)
 
-Done. Start coding with your AI assistant.
+Step 3 - Verify in 30 seconds:
+
+- `AGENTS.md` exists in project root
+- `context/INDEX.md` exists
+
+Done. Start coding with your AI assistant from this fixed entry point.
 
 ### Option B: Existing Project (Retrofit)
 
 ```bash
 # Step 1 - Run this in your project root
+# L0+ keeps code untouched and also generates a repo snapshot
 npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 ```
 
-Then check:
+Step 2 - Check generated files:
 
 1. `AGENTS.md` - fill in your project info
-2. `context/tech/REPO_SNAPSHOT.md` - check the auto-generated repo snapshot
+2. `context/tech/REPO_SNAPSHOT.md` - review auto-detected stack, directory layout, and CI clues
 
-Done. Start coding with your AI assistant.
+Step 3 - Verify in 30 seconds:
+
+- `AGENTS.md` exists in project root
+- `context/INDEX.md` exists
+- `context/tech/REPO_SNAPSHOT.md` exists (for `L0+`)
+
+Done. Start coding with your AI assistant from this fixed entry point.
 
 ### Before / After
 
@@ -72,19 +106,9 @@ your-project/                    your-project/
                                  └── ...
 ```
 
-A few files added. AI now understands your project.
+A few files added. AI now has a stable, reusable way to read your project context.
 
-> **Manual install** (offline / intranet): `git clone` this repo, then copy `AGENTS.md` and `context/` into your project. See [init/](init/) for details.
-
-## The Problem
-
-Every time you start a new AI coding session:
-
-- **Context is lost** - AI cannot see your past decisions, business boundaries, or coding standards
-- **Knowledge does not compound** - you explain the same things over and over, marginal cost stays flat
-- **Tools are fragmented** - each AI tool has its own config format
-
-This framework solves all three with a single, tool-agnostic entry point.
+> **Manual install** (offline / intranet): `git clone` the AIEF repository, then copy `AGENTS.md` and `context/` into your project. See [init/](init/) for details.
 
 ## Core Concept
 
@@ -98,7 +122,7 @@ These are implemented with:
 
 - `AGENTS.md` as the project-level AI entry point
 - `context/` as long-term context storage
-- `experience/` as the compounding mechanism
+- `context/experience/` as the compounding mechanism
 - `workflow/` as an optional collaboration enhancer
 
 ## Repository Structure and Read Order
@@ -113,7 +137,7 @@ You do not need every file on day one. Recommended read/use order:
 6. `workflow/` (optional)
 7. `.ai-adapters/` (tool-specific, optional)
 
-Structure overview:
+Condensed structure overview:
 
 ```
 your-project/
