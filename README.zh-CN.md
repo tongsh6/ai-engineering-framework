@@ -18,9 +18,9 @@ AI 编码助手（Cursor、Copilot、Claude Code 等）可以读取代码文件�
 
 **AIEF** 为你的项目提供一个结构化入口 - 一个 `AGENTS.md` 文件加一个 `context/` 知识库 - 让 AI 稳定、持续地加载正确上下文。
 
-`AGENTS.md` 是被主流 AI 编码工具支持的跨工具约定，不绑定单一厂商。
+`AGENTS.md` 是跨工具约定（有的工具原生读取，有的工具需要明确指定入口），不绑定单一厂商。
 
-如果你的工具默认不会读取 `AGENTS.md`，可以启用适配层（见 `.ai-adapters/`），或明确要求从 `AGENTS.md` 作为入口开始。
+多数情况下你不需要适配层。如果你的工具默认不会读取 `AGENTS.md`，可以启用适配层（见 `.ai-adapters/`），或明确要求从 `AGENTS.md` 作为入口开始。
 
 AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 
@@ -57,6 +57,8 @@ Retrofit 等级速记：
 npx --yes @tongsh6/aief-init@latest new
 ```
 
+这会生成 `AGENTS.md` 和 `context/INDEX.md`。
+
 第 2 步 - 打开生成的 `AGENTS.md` 模板，填写：
 
 1. 项目一句话介绍
@@ -72,7 +74,7 @@ npx --yes @tongsh6/aief-init@latest new
 
 可选：验证工具行为：
 
-- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并检查它是否能覆盖你写下的约束点。
+- 让你的 AI 工具执行："把 `AGENTS.md` 里的关键约束列成 3 条 bullet"，并检查是否与原文一致。
 
 完成。开始从这个固定入口发起 AI 协作。
 
@@ -84,10 +86,12 @@ npx --yes @tongsh6/aief-init@latest new
 npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 ```
 
+这会生成 `AGENTS.md`、`context/INDEX.md` 以及 `context/tech/REPO_SNAPSHOT.md`。
+
 第 2 步 - 检查生成文件：
 
 1. `AGENTS.md` - 填入项目信息
-2. `context/tech/REPO_SNAPSHOT.md` - 检查自动识别的技术栈、目录结构与 CI 线索
+2. `context/tech/REPO_SNAPSHOT.md` - 检查自动识别的技术栈、目录结构与 CI 配置线索（GitHub Actions、scripts、Makefile 等）
 
 第 3 步 - 30 秒验证：
 
@@ -97,7 +101,7 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 
 可选：验证工具行为：
 
-- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并检查它是否能覆盖你写下的约束点。
+- 让你的 AI 工具执行："把 `AGENTS.md` 里的关键约束列成 3 条 bullet"，并检查是否与原文一致。
 
 完成。开始从这个固定入口发起 AI 协作。
 
