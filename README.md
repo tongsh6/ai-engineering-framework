@@ -20,6 +20,8 @@ AI coding assistants (Cursor, Copilot, Claude Code, etc.) can read files, but th
 
 `AGENTS.md` is a cross-tool convention used by mainstream AI coding tools. No vendor lock-in.
 
+If your tool does not read `AGENTS.md` by default, enable an adapter (see `.ai-adapters/`) or instruct the tool to start from `AGENTS.md`.
+
 AIEF focuses on stable collaboration context, not model cleverness.
 
 Why teams adopt it:
@@ -61,6 +63,8 @@ Step 2 - Open the generated `AGENTS.md` template and fill in:
 2. Key constraints (e.g., directory boundaries, critical rules)
 3. Common commands (`build` / `test` / `run`)
 
+Keep it rough - short bullets are enough for L0.
+
 Step 3 - Verify in 30 seconds:
 
 - `AGENTS.md` exists in project root
@@ -68,7 +72,7 @@ Step 3 - Verify in 30 seconds:
 
 Optional: Verify behavior in your AI tool:
 
-- Ask: "Summarize project rules from `AGENTS.md`." It should quote or reference the file.
+- Ask: "Summarize the project rules from `AGENTS.md`." It should mention the constraints you wrote.
 
 Done. Start coding with your AI assistant from this fixed entry point.
 
@@ -93,7 +97,7 @@ Step 3 - Verify in 30 seconds:
 
 Optional: Verify behavior in your AI tool:
 
-- Ask: "Summarize project rules from `AGENTS.md`." It should quote or reference the file.
+- Ask: "Summarize the project rules from `AGENTS.md`." It should mention the constraints you wrote.
 
 Done. Start coding with your AI assistant from this fixed entry point.
 

@@ -20,6 +20,8 @@ AI 编码助手（Cursor、Copilot、Claude Code 等）可以读取代码文件�
 
 `AGENTS.md` 是被主流 AI 编码工具支持的跨工具约定，不绑定单一厂商。
 
+如果你的工具默认不会读取 `AGENTS.md`，可以启用适配层（见 `.ai-adapters/`），或明确要求从 `AGENTS.md` 作为入口开始。
+
 AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 
 团队选择它的原因：
@@ -61,6 +63,8 @@ npx --yes @tongsh6/aief-init@latest new
 2. 核心约束（如：目录边界、关键规则）
 3. 常用命令（`build` / `test` / `run`）
 
+允许很粗：短 bullet 就足够完成 L0。
+
 第 3 步 - 30 秒验证：
 
 - 项目根目录存在 `AGENTS.md`
@@ -68,7 +72,7 @@ npx --yes @tongsh6/aief-init@latest new
 
 可选：验证工具行为：
 
-- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并要求其引用/标注来源文件。
+- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并检查它是否能覆盖你写下的约束点。
 
 完成。开始从这个固定入口发起 AI 协作。
 
@@ -93,7 +97,7 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 
 可选：验证工具行为：
 
-- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并要求其引用/标注来源文件。
+- 让你的 AI 工具执行："从 `AGENTS.md` 总结项目约束"，并检查它是否能覆盖你写下的约束点。
 
 完成。开始从这个固定入口发起 AI 协作。
 
