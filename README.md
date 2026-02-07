@@ -1,290 +1,274 @@
 # AI Engineering Framework
 
-> 一套通用的 AI 工程化标准，让 AI 编码助手更懂你的项目。
+> A project-level context layer that makes AI coding assistants truly understand your codebase.
+
+Get your project AI-ready in 5 minutes.
 
 [![Tool Agnostic](https://img.shields.io/badge/Tool-Agnostic-blue.svg)](https://github.com/anthropics/claude-code/blob/main/AGENTS.md)
-[![Context Engineering](https://img.shields.io/badge/Context-Engineering-green.svg)](https://context.engineering)
-[![Multi-Agent](https://img.shields.io/badge/Multi-Agent-Workflow-orange.svg)](https://www.anthropic.com/research/multi-agent-collaboration)
+[![npm](https://img.shields.io/npm/v/@tongsh6/aief-init)](https://www.npmjs.com/package/@tongsh6/aief-init)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 核心理念
+**[中文文档](README.zh-CN.md)**
 
-### 问题
+---
 
-传统 AI 编码助手的痛点：
-- **上下文缺失**：AI 看不到历史经验、业务边界、技术规范
-- **知识不沉淀**：每次都从头开始，边际成本恒定
-- **工具碎片化**：每个 AI 工具有不同的配置方式
+## What Is This?
 
-### 解决方案
+AI coding assistants (Cursor, Copilot, Claude Code, etc.) start every session with zero knowledge of your project's business rules, architecture decisions, and hard-won lessons.
 
-三大核心能力：
+**AI Engineering Framework** gives your project a structured entry point - an `AGENTS.md` file plus a `context/` knowledge base - so AI can automatically load what it needs. No vendor lock-in. Works with any AI tool that supports the [AGENTS.md standard](https://github.com/anthropics/claude-code/blob/main/AGENTS.md).
 
-| 能力 | 描述 | 实现 |
-|------|------|------|
-| **上下文工程** | AI 自动获取完整、相关的信息 | `context/` 知识库 |
-| **多 Agent 协作** | 复杂任务自动分解、阶段流转 | `workflow/` 工作流 |
-| **工具无关** | 一次编写，适配所有 AI 工具 | AGENTS.md 标准 |
+AIEF focuses on stable collaboration context, not model cleverness.
 
-## 快速开始
+Why teams adopt it:
 
-### 安装
+- Faster AI sessions with less repeated prompting
+- Shared project rules across people and tools
+- Incremental adoption (start small, expand when needed)
+
+## 5-Minute Quick Start
+
+### Option A: New Project
 
 ```bash
-# 方式 1：无拷贝前置（推荐，在你的目标仓库根目录执行）
-# New Project
+# Step 1 - Run this in your project root
 npx --yes @tongsh6/aief-init@latest new
+```
 
-# Existing Project (Retrofit)
+Then open the generated `AGENTS.md` and fill in:
+
+1. One-line project description
+2. Key constraints (e.g., directory boundaries, critical rules)
+3. Common commands (`build` / `test` / `run`)
+
+Done. Start coding with your AI assistant.
+
+### Option B: Existing Project (Retrofit)
+
+```bash
+# Step 1 - Run this in your project root
 npx --yes @tongsh6/aief-init@latest retrofit --level L0+
-
-# 方式 2：手动复制（可选，适合离线/内网场景）
-git clone https://github.com/tongsh6/ai-engineering-framework
-
-# 最小复制：只插入口
-cp -r ai-engineering-framework/{AGENTS.md,context} your-project/
-
-# 可选增强：按需复制初始化与模板/脚本
-cp -r ai-engineering-framework/{init,templates,scripts,records} your-project/
-
-# workflow/ 是可选的
-cp -r ai-engineering-framework/workflow your-project/
 ```
 
-### 初始化项目
+Then check:
 
-初始化的目标不是“补齐文档”，而是先插入一个不会被忽略的稳定入口。
+1. `AGENTS.md` - fill in your project info
+2. `context/tech/REPO_SNAPSHOT.md` - check the auto-generated repo snapshot
 
-两条初始化路径（强制区分）：
-- New Project Init：init/NEW_PROJECT_INIT.md
-- Existing Project Init（Retrofit）：init/EXISTING_PROJECT_INIT.md
+Done. Start coding with your AI assistant.
 
-最小初始化产物（必须）：
-
-    AGENTS.md
-    context/
-        INDEX.md
-
-最小可复制模板：
-- templates/minimal/
-- templates/retrofit/
-
-可选：一条命令初始化（不改变现有代码结构，仅生成 AIEF 入口文件）：
-- New Project: node scripts/aief-init.mjs new
-- Existing Project (Retrofit): node scripts/aief-init.mjs retrofit --level L0+
-
-可选：无拷贝前置的一键运行（推荐用于推广/接入，短命令别名包）：
-- New Project: npx --yes @tongsh6/aief-init@latest new
-- Existing Project (Retrofit): npx --yes @tongsh6/aief-init@latest retrofit --level L0+
-
-说明：
-- @tongsh6/aief-init 是短命令别名包
-- 官方全名包：@tongsh6/ai-engineering-framework-init
-
-## 目录结构
+### Before / After
 
 ```
-<project-root>/
-├── AGENTS.md                    # AI 主入口（工具无关）
-│
-├── context/                     # 项目知识库（上下文工程）
-│   ├── INDEX.md                 # 知识库导航
-│   ├── business/                # 业务知识
-│   │   ├── domain-model.md      # 领域模型
-│   │   └── glossary.md          # 术语表
-│   ├── tech/                    # 技术知识
-│   │   ├── architecture/        # 架构设计
-│   │   │   └── README.md        # 架构概览
-│   │   ├── api/                 # API 文档
-│   │   │   └── README.md        # API 设计指南
-│   │   └── conventions/         # 开发规范
-│   │       ├── backend.md       # 后端规范
-│   │       ├── frontend.md      # 前端规范
-│   │       ├── testing.md       # 测试规范
-│   │       └── database.md      # 数据库规范
-│   └── experience/              # 经验知识（复利）
-│       ├── INDEX.md             # 经验索引（可检索）
-│       ├── lessons/             # 经验文档
-│       │   └── _template.md     # 经验模板
-│       └── reports/             # 审计报告
-│           └── _template.md     # 报告模板
-│
-├── workflow/                    # 工作流定义（可选，见下方说明）
-│   ├── INDEX.md                 # 工作流导航
-│   └── phases/                  # 阶段定义
-│       ├── proposal.md          # 提案阶段
-│       ├── design.md            # 设计阶段
-│       ├── implement.md         # 实现阶段
-│       └── review.md            # 审查阶段
-│
-└── .ai-adapters/                # 工具适配层（可选）
-    ├── cursor/                  # Cursor IDE
-    ├── copilot/                 # GitHub Copilot
-    └── opencode/                # OpenCode
+Before:                          After:
+your-project/                    your-project/
+├── src/                         ├── src/
+├── package.json                 ├── package.json
+└── ...                          ├── AGENTS.md            <- AI entry point
+                                 ├── context/
+                                 │   ├── INDEX.md         <- knowledge base nav
+                                 │   └── tech/
+                                 │       └── REPO_SNAPSHOT.md  <- auto-generated
+                                 └── ...
 ```
 
-### workflow/ 是可选的
+A few files added. AI now understands your project.
 
-`workflow/` 目录提供了一套通用的多阶段工作流（提案→设计→实现→审查）。但你可以：
+> **Manual install** (offline / intranet): `git clone` this repo, then copy `AGENTS.md` and `context/` into your project. See [init/](init/) for details.
 
-1. **完全不使用**：对于简单项目，直接在 AGENTS.md 定义任务路由规则即可
-2. **使用替代方案**：如 [OpenSpec](https://openspec.dev) 提供更完整的规范驱动开发流程
-3. **自定义阶段**：根据项目需要修改或添加阶段
+## The Problem
 
-推荐策略：
-- 新项目 → 先只用 `context/`，按需添加 `workflow/`
-- 已有规范流程 → 用 OpenSpec 或自定义方案替代 `workflow/`
+Every time you start a new AI coding session:
 
-## 核心概念
+- **Context is lost** - AI cannot see your past decisions, business boundaries, or coding standards
+- **Knowledge does not compound** - you explain the same things over and over, marginal cost stays flat
+- **Tools are fragmented** - each AI tool has its own config format
 
-### 1. 上下文工程 (Context Engineering)
+This framework solves all three with a single, tool-agnostic entry point.
 
-让 AI 自动获取完整信息，而非每次从头开始。
+## Core Concept
 
-**三层上下文**：
+AIEF is built around three long-term engineering facts:
 
-| 层级 | 内容 | 更新频率 |
-|------|------|---------|
-| 业务上下文 | 领域模型、用户故事、业务规则 | 低频 |
-| 技术上下文 | 架构、API、开发规范 | 中频 |
-| 经验上下文 | 踩坑记录、最佳实践 | 高频 |
+1. AI needs a stable entry point to read project rules
+2. Projects need a long-lived context index
+3. Experience must be reusable across tasks and people
 
-### 2. 多 Agent 协作 (Workflow)
+These are implemented with:
 
-复杂任务自动分解、阶段流转、知识传递。
+- `AGENTS.md` as the project-level AI entry point
+- `context/` as long-term context storage
+- `experience/` as the compounding mechanism
+- `workflow/` as an optional collaboration enhancer
 
-**阶段模型**：
+## Repository Structure and Read Order
 
-```
-触发 → 路由 → 阶段执行 → 验证 → 下一阶段/完成
-```
+You do not need every file on day one. Recommended read/use order:
 
-**内置阶段**（可选，可用 OpenSpec 等替代）：
-- `proposal` - 提案阶段
-- `design` - 设计阶段
-- `implement` - 实现阶段
-- `review` - 审查阶段
+1. `AGENTS.md`
+2. `context/INDEX.md`
+3. `context/business/`
+4. `context/tech/`
+5. `context/experience/`
+6. `workflow/` (optional)
+7. `.ai-adapters/` (tool-specific, optional)
 
-### 3. 经验复利 (Experience Compounding)
-
-每次 AI 执行任务后，有价值的经验被沉淀，降低下次成本。
+Structure overview:
 
 ```
-第一次做 → 建立经验索引
-第二次做 → 复用经验，成本降低
-第 N 次做 → 接近零成本
+your-project/
+├── AGENTS.md                    # AI entry point (tool-agnostic)
+├── context/                     # Project knowledge base
+│   ├── INDEX.md                 # Navigation index
+│   ├── business/                # Domain models, glossary
+│   ├── tech/                    # Architecture, API, conventions
+│   └── experience/              # Lessons learned (compounding)
+├── workflow/                    # Multi-phase workflows (optional)
+└── .ai-adapters/                # Tool-specific configs (optional)
 ```
 
-### 4. 工具无关 (Tool Agnostic)
+Only `AGENTS.md` and `context/INDEX.md` are required. Everything else is opt-in.
 
-基于 [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md)，被主流 AI 工具支持：
+## Going Further
 
-- Cursor
-- GitHub Copilot
-- Claude Code
-- Windsurf
-- Aider
-- OpenCode
+### Context Library (`context/`)
 
-## 工具适配
+Organize project knowledge into three layers:
 
-### 基础适配（自动生效）
+| Layer | Contents | Update Frequency |
+|-------|----------|-----------------|
+| **Business** | Domain models, user stories, business rules | Low |
+| **Tech** | Architecture, API docs, coding conventions | Medium |
+| **Experience** | Lessons learned, best practices, post-mortems | High |
 
-所有支持 AGENTS.md 的工具会自动读取项目根目录的 AGENTS.md。
+AI loads the right context automatically based on the task at hand - see `AGENTS.md` for the routing rules.
 
-### 增强适配（可选）
+### Experience Compounding (`context/experience/`)
 
-针对特定工具的增强配置：
-
-```bash
-# Cursor
-.ai-adapters/cursor/rules/project.mdc
-
-# GitHub Copilot
-.ai-adapters/copilot/instructions.md
-
-# OpenCode (支持 delegate_task)
-.ai-adapters/opencode/commands/
-```
-
-## 与 OpenSpec 集成
-
-本框架可与 [OpenSpec](https://openspec.dev) 规范驱动开发框架配合使用：
+The real power: every time AI completes a task, valuable lessons get captured and indexed. Next time a similar task comes up, AI loads the relevant experience automatically.
 
 ```
-<project-root>/
-├── AGENTS.md           # AI 工程化入口
-├── context/            # 项目知识库
-├── workflow/           # 工作流定义
-└── openspec/           # 规范驱动（OpenSpec）
-    ├── specs/          # 功能规范
-    └── changes/        # 变更提案
+First time  -> Establish experience index
+Second time -> Reuse experience, lower cost
+Nth time    -> Near-zero marginal cost
 ```
 
-在 AGENTS.md 中引用：
+### Workflow (`workflow/`, optional)
 
-```markdown
-## 规范驱动
+A built-in multi-phase workflow for complex tasks:
 
-当任务涉及新功能或重大变更时，参阅 `openspec/AGENTS.md`。
+```
+Trigger -> Route -> Phase Execution -> Validate -> Next Phase / Done
 ```
 
-## 最佳实践
+Built-in phases: `proposal` -> `design` -> `implement` -> `review`
 
-### 1. 从真实场景出发
+You can also use [OpenSpec](https://openspec.dev), your own workflow, or skip this entirely.
 
-- 不要为了用框架而用框架
-- 从高效的人的工作流程中提取模式
-- 把高效流程 AI 化
+### Tool Adapters (`.ai-adapters/`, optional)
 
-### 2. 知识编码进文档
+All tools that support AGENTS.md work out of the box. For tool-specific enhancements:
 
-- 把经验编码成可检索的文档
-- 把规范编码成明确的规则
-- 把上下文编码成自动加载策略
+| Tool | Config Path |
+|------|------------|
+| Cursor | `.ai-adapters/cursor/rules/` |
+| GitHub Copilot | `.ai-adapters/copilot/instructions.md` |
+| OpenCode | `.ai-adapters/opencode/commands/` |
 
-### 3. 追求边际成本递减
+### OpenSpec Integration
 
-- 每次任务后考虑：有什么经验可以沉淀？
-- 定期整理经验索引
-- 删除过时的知识
+Works with [OpenSpec](https://openspec.dev) for spec-driven development:
 
-### 4. 保持简单
-
-- 从最小配置开始
-- 按需添加复杂度
-- 定期清理无用配置
-
-## 分支策略
-
-| 分支 | 用途 | 说明 |
-|------|------|------|
-| `main` | 稳定版本 | 用户默认获取，始终保持可用 |
-| `develop` | 开发分支 | 新功能集成测试 |
-| `feature/*` | 功能分支 | 从 develop 创建，完成后合并回 develop |
-
-**版本标签**：使用语义化版本 `v1.0.0`, `v1.1.0` 等。
-
-```bash
-# 获取特定版本
-npx degit tongsh6/ai-engineering-framework#v1.0.0 my-project
-
-# 获取最新开发版
-npx degit tongsh6/ai-engineering-framework#develop my-project
+```
+your-project/
+├── AGENTS.md           # AI Engineering entry point
+├── context/            # Knowledge base
+└── openspec/           # Spec-driven development
+    ├── specs/
+    └── changes/
 ```
 
-### 贡献流程
+## Migration Levels
 
-1. Fork 仓库
-2. 从 `develop` 创建 feature 分支
-3. 提交 PR 到 `develop`
-4. 维护者定期将 `develop` 合并到 `main` 并打标签
+For existing projects, adopt incrementally:
 
-## 参考资源
+| Level | Effort | What You Get |
+|-------|--------|-------------|
+| **L0** | 5 min | `AGENTS.md` + `context/INDEX.md` (empty but present) |
+| **L0+** | 10 min | + auto-generated `REPO_SNAPSHOT.md` |
+| **L1** | 1-2 hrs | + one-page business doc + one-page tech doc |
+| **L2** | Optional | + workflow, experience templates, CI checks |
+| **L3** | Ongoing | + continuous experience compounding |
 
-- [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - 工具无关的 AI 指南标准
-- [Context Engineering](https://context.engineering) - 上下文工程方法论
-- [OpenSpec](https://openspec.dev) - 规范驱动开发框架
-- [认知重建：Speckit 用了三个月，我放弃了](https://zhuanlan.zhihu.com/p/1993009461451831150) - 核心思想来源
+Start at L0. Move up when you feel the need.
+
+L0 is considered adopted once `AGENTS.md` and `context/INDEX.md` exist.
+
+## Rollback and Safety
+
+AIEF is a sidecar-style convention and does not modify your business code structure.
+
+If you stop using it, remove:
+
+- `AGENTS.md`
+- `context/`
+
+Build, runtime, and git history remain unaffected.
+
+---
+
+<details>
+<summary><strong>Best Practices</strong></summary>
+
+### Start from real scenarios
+- Do not adopt the framework for its own sake
+- Extract patterns from how your most effective team members work
+- Turn those effective workflows into AI-readable context
+
+### Encode knowledge into documents
+- Turn experience into searchable docs
+- Turn conventions into explicit rules
+- Turn context into auto-loading strategies
+
+### Pursue decreasing marginal cost
+- After each task, ask: what experience can be captured?
+- Periodically organize the experience index
+- Delete outdated knowledge
+
+### Keep it simple
+- Start with the minimal config
+- Add complexity only when needed
+- Regularly clean up unused configs
+
+</details>
+
+<details>
+<summary><strong>Branch Strategy & Contributing</strong></summary>
+
+| Branch | Purpose | Notes |
+|--------|---------|-------|
+| `main` | Stable release | What users get by default |
+| `develop` | Development | Integration testing for new features |
+| `feature/*` | Feature branches | Created from develop, merged back |
+
+**Version tags**: Semantic versioning - `v1.0.0`, `v1.1.0`, etc.
+
+### Contributing
+
+1. Fork the repo
+2. Create a feature branch from `develop`
+3. Submit PR to `develop`
+4. Maintainers periodically merge `develop` -> `main` and tag releases
+
+</details>
+
+---
+
+## References
+
+- [AGENTS.md Standard](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - Tool-agnostic AI guide standard
+- [Context Engineering](https://context.engineering) - Context engineering methodology
+- [OpenSpec](https://openspec.dev) - Spec-driven development framework
 
 ## License
 
