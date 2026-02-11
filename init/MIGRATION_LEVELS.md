@@ -13,11 +13,13 @@ L1（最小可读性）：
 L2（可选增强）：
 - 引入 workflow/（可选）
 - 引入 experience 模板
+- 引入 Skill/Command/Agent 标准规范（docs/standards/）
 - 可开启校验机制（例如：PR 检查、CI 校验）
 
 L3（持续运行）：
 - 持续沉淀经验
 - 每个重要变更至少记录一条 experience
+- 引入跨切面模式（自动阶段路由、经验管理、上下文加载）
 
 注意：
 - L0 不修改现有代码结构

@@ -1,6 +1,6 @@
 {
   "name": "@tongsh6/aief-init",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Short alias for @tongsh6/ai-engineering-framework-init",
   "license": "MIT",
   "type": "module",
