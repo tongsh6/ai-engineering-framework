@@ -81,6 +81,16 @@ cp -r ai-engineering-framework/{AGENTS.md,context,workflow} your-project/
 │       ├── implement.md         # 实现阶段
 │       └── review.md            # 审查阶段
 │
+├── docs/                        # 文档与标准
+│   └── standards/               # 规范标准（L1/L2 扩展）
+│       ├── skill-spec.md        # Skill（执行层）规范
+│       ├── command-spec.md      # Command（入口层）规范
+│       ├── agent-spec.md        # Agent（决策层）规范
+│       └── patterns/            # 跨切面模式
+│           ├── phase-router.md  # 自动阶段路由
+│           ├── experience-mgmt.md # 三层经验管理
+│           └── context-loading.md # 上下文自动加载
+│
 └── .ai-adapters/                # 工具适配层（可选）
     ├── cursor/                  # Cursor IDE
     ├── copilot/                 # GitHub Copilot
@@ -249,7 +259,7 @@ npx degit tongsh6/ai-engineering-framework#develop my-project
 - [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - 工具无关的 AI 指南标准
 - [Context Engineering](https://context.engineering) - 上下文工程方法论
 - [OpenSpec](https://openspec.dev) - 规范驱动开发框架
-- [认知重建：Speckit 用了三个月，我放弃了](https://zhuanlan.zhihu.com/p/1993009461451831150) - 核心思想来源
+- [认知重建：Speckit 用了三个月，我放弃了](https://zhuanlan.zhihu.com/p/1993009461451831150) - 核心思想来源，从工具思维到工程思维的转变历程
 
 ## License
 
