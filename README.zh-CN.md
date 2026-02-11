@@ -157,7 +157,8 @@ AIEF 建立在三个长期存在的工程事实之上：
 4. `context/tech/`
 5. `context/experience/`
 6. `workflow/`（可选）
-7. `.ai-adapters/`（按工具启用，可选）
+7. `docs/standards/`（L1/L2 标准规范，可选）
+8. `.ai-adapters/`（按工具启用，可选）
 
 精简目录概览：
 
@@ -170,6 +171,7 @@ your-project/
 │   ├── tech/                    # 架构、API、开发规范
 │   └── experience/              # 经验沉淀（复利）
 ├── workflow/                    # 多阶段工作流（可选）
+├── docs/standards/              # Skill/Command/Agent 规范与模式（可选）
 └── .ai-adapters/                # 工具特定配置（可选）
 ```
 
@@ -243,8 +245,8 @@ your-project/
 | **L0** | 5 分钟 | `AGENTS.md` + `context/INDEX.md`（可以是空的） |
 | **L0+** | 10 分钟 | + 自动生成的 `REPO_SNAPSHOT.md` |
 | **L1** | 1-2 小时 | + 一页业务文档 + 一页技术文档 |
-| **L2** | 可选 | + 工作流、经验模板、CI 校验 |
-| **L3** | 持续 | + 持续经验复利 |
+| **L2** | 可选 | + 工作流、经验模板、Skill/Command/Agent 标准规范 |
+| **L3** | 持续 | + 持续经验复利、跨切面模式（自动路由/经验管理/上下文加载） |
 
 从 L0 开始。感到需要时再升级。
 
@@ -315,6 +317,7 @@ AIEF 是旁路式规范，不会侵入你的业务代码结构。
 - [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - 工具无关的 AI 指南标准
 - [Context Engineering](https://context.engineering) - 上下文工程方法论
 - [OpenSpec](https://openspec.dev) - 规范驱动开发框架
+- [认知重建：Speckit 用了三个月，我放弃了](https://zhuanlan.zhihu.com/p/1993009461451831150) - 核心思想来源，从工具思维到工程思维的转变历程
 
 ## License
 

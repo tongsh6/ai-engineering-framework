@@ -314,6 +314,11 @@ function initRetrofit({ level, force, dryRun } = {}) {
   const snapshotPath = repoPath('context/tech/REPO_SNAPSHOT.md')
   const snapshotContent = formatRepoSnapshot(process.cwd())
   writeFile(snapshotPath, snapshotContent, { force, dryRun })
+
+  if (level === 'L1') {
+    // Create docs/standards/ directory structure for L1+ projects
+    ensureDir(repoPath('docs/standards/patterns'), { dryRun })
+  }
 }
 
 function main() {
