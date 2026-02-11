@@ -24,6 +24,8 @@
 | [context/tech/](context/tech/) | 技术文档 | 架构设计、API、开发规范 |
 | [context/experience/](context/experience/) | 经验库 | 避免重复踩坑 |
 | [workflow/](workflow/) | 工作流程 | 复杂任务的阶段指南 |
+| [docs/standards/](docs/standards/) | 规范标准 | Skill/Command/Agent 标准格式（L1） |
+| [docs/standards/patterns/](docs/standards/patterns/) | 跨切面模式 | 阶段路由、经验管理、上下文加载（L2） |
 
 ---
 
