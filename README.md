@@ -157,7 +157,8 @@ You do not need every file on day one. Recommended read/use order:
 4. `context/tech/`
 5. `context/experience/`
 6. `workflow/` (optional)
-7. `.ai-adapters/` (tool-specific, optional)
+7. `docs/standards/` (L1/L2 standards, optional)
+8. `.ai-adapters/` (tool-specific, optional)
 
 Condensed structure overview:
 
@@ -170,6 +171,7 @@ your-project/
 │   ├── tech/                    # Architecture, API, conventions
 │   └── experience/              # Lessons learned (compounding)
 ├── workflow/                    # Multi-phase workflows (optional)
+├── docs/standards/              # Skill/Command/Agent specs & patterns (optional)
 └── .ai-adapters/                # Tool-specific configs (optional)
 ```
 
@@ -243,8 +245,8 @@ For existing projects, adopt incrementally:
 | **L0** | 5 min | `AGENTS.md` + `context/INDEX.md` (empty but present) |
 | **L0+** | 10 min | + auto-generated `REPO_SNAPSHOT.md` |
 | **L1** | 1-2 hrs | + one-page business doc + one-page tech doc |
-| **L2** | Optional | + workflow, experience templates, CI checks |
-| **L3** | Ongoing | + continuous experience compounding |
+| **L2** | Optional | + workflow, experience templates, Skill/Command/Agent standards |
+| **L3** | Ongoing | + continuous experience compounding, cross-cutting patterns (auto-routing, experience management, context loading) |
 
 Start at L0. Move up when you feel the need.
 
@@ -315,6 +317,7 @@ Build, runtime, and git history remain unaffected.
 - [AGENTS.md Standard](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - Tool-agnostic AI guide standard
 - [Context Engineering](https://context.engineering) - Context engineering methodology
 - [OpenSpec](https://openspec.dev) - Spec-driven development framework
+- [Cognitive Rebuild: Three Months with Speckit, Then I Gave Up](https://zhuanlan.zhihu.com/p/1993009461451831150) - Core inspiration: the shift from tool-thinking to engineering-thinking
 
 ## License
 
