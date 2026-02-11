@@ -1,6 +1,6 @@
 {
   "name": "@tongsh6/ai-engineering-framework-init",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Optional bootstrap CLI for AI Engineering Framework (AIEF)",
   "license": "MIT",
   "type": "module",
