@@ -1,0 +1,116 @@
+name: Release & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Verify version consistency
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Tag version: ${TAG_VERSION}"
+
+      - name: Check package versions match tag
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+
+          PKG1_VERSION=$(node -p "require('./packages/aief-init/package.json').version")
+          PKG2_VERSION=$(node -p "require('./packages/ai-engineering-framework-init/package.json').version")
+
+          echo "Tag version:    ${TAG_VERSION}"
+          echo "aief-init:      ${PKG1_VERSION}"
+          echo "ai-eng-fw-init: ${PKG2_VERSION}"
+
+          FAILED=0
+          if [ "${PKG1_VERSION}" != "${TAG_VERSION}" ]; then
+            echo "::error::@tongsh6/aief-init version (${PKG1_VERSION}) does not match tag (${TAG_VERSION})"
+            FAILED=1
+          fi
+          if [ "${PKG2_VERSION}" != "${TAG_VERSION}" ]; then
+            echo "::error::@tongsh6/ai-engineering-framework-init version (${PKG2_VERSION}) does not match tag (${TAG_VERSION})"
+            FAILED=1
+          fi
+          if [ "${FAILED}" -eq 1 ]; then
+            exit 1
+          fi
+          echo "All versions match."
+
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish @tongsh6/aief-init
+        working-directory: packages/aief-init
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @tongsh6/ai-engineering-framework-init
+        working-directory: packages/ai-engineering-framework-init
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [verify, publish]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          # Find previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | grep '^v' | sed -n '2p')
+          if [ -z "${PREV_TAG}" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "Previous tag: ${PREV_TAG}"
+
+          # Generate commit log
+          COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
+          if [ -z "${COMMITS}" ]; then
+            COMMITS="- Version bump and release"
+          fi
+
+          # Write to file for gh release
+          cat > release_notes.md <<NOTES_EOF
+          ## What's Changed
+
+          ${COMMITS}
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ github.ref_name }}
+          NOTES_EOF
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --notes-file release_notes.md
