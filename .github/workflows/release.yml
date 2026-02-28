@@ -24,6 +24,9 @@ jobs:
           echo "version=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
           echo "Tag version: ${TAG_VERSION}"
 
+      - name: Run AIEF verify
+        run: node scripts/aief.mjs verify
+
       - name: Check package versions match tag
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/v}"
