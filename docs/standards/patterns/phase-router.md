@@ -159,4 +159,4 @@ Phase Router 判断：
 
 - [Agent 规范标准](../agent-spec.md) — Agent 定义规范
 - [Command 规范标准](../command-spec.md) — Command 编排模式
-- [workflow/INDEX.md](../../workflow/INDEX.md) — 工作流阶段定义
+- [workflow/INDEX.md](../../../workflow/INDEX.md) — 工作流阶段定义

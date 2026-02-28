@@ -162,6 +162,6 @@ P3 内容 → 若总量超限，仅加载标题和概述
 
 ## 参考
 
-- [context/INDEX.md](../../context/INDEX.md) — 知识库索引
+- [context/INDEX.md](../../../context/INDEX.md) — 知识库索引
 - [经验管理模式](experience-mgmt.md) — 经验层的加载策略
 - [自动阶段路由模式](phase-router.md) — 触发上下文加载的路由机制
