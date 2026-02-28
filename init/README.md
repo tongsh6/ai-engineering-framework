@@ -23,3 +23,12 @@
 说明：
 - @tongsh6/aief-init 是短命令别名包
 - 官方全名包：@tongsh6/ai-engineering-framework-init
+
+引用一致性校验（迁移目录后推荐执行）：
+- `node scripts/aief.mjs validate refs`
+- `node scripts/aief.mjs validate refs --fix`
+- `node scripts/aief.mjs verify`
+
+一键迁移（收敛到单目录）：
+- 预览：`node scripts/aief.mjs migrate --to-base-dir AIEF --dry-run`
+- 执行：`node scripts/aief.mjs migrate --to-base-dir AIEF`

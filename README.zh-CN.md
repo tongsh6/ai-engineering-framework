@@ -54,7 +54,7 @@ Retrofit 等级速记：
 
 ```bash
 # 第 1 步 - 在项目根目录执行
-npx --yes @tongsh6/aief-init@latest new
+npx --yes @tongsh6/aief-init@latest new --locale zh-CN
 ```
 
 这会生成 `AGENTS.md` 和 `context/INDEX.md`。
@@ -83,7 +83,7 @@ npx --yes @tongsh6/aief-init@latest new
 ```bash
 # 第 1 步 - 在项目根目录执行
 # L0+ 不改业务代码，同时生成仓库快照
-npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+npx --yes @tongsh6/aief-init@latest retrofit --level L1 --locale zh-CN
 ```
 
 这会生成 `AGENTS.md`、`context/INDEX.md` 以及 `context/tech/REPO_SNAPSHOT.md`。
@@ -104,6 +104,40 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 - 让你的 AI 工具执行："把 `AGENTS.md` 里的关键约束列成 3 条 bullet"，并检查是否与原文一致。
 
 完成。开始从这个固定入口发起 AI 协作。
+
+### 本地化支持（`--locale`）
+
+`aief-init` 支持按语言生成模板：
+
+```bash
+# 中文模板（默认）
+npx --yes @tongsh6/aief-init@latest new --locale zh-CN
+
+# 英文模板
+npx --yes @tongsh6/aief-init@latest retrofit --level L1 --locale en
+```
+
+说明：
+- 支持的 locale：`zh-CN`、`en`
+- 默认 locale：`zh-CN`
+- 不支持的 locale 会自动回退到 `zh-CN` 并输出 warning
+- `L1` 会输出本地化模板到 `context/`、`workflow/`、`docs/standards/`、`templates/`
+
+### 单目录模式（`--base-dir`）
+
+可将 AIEF 资产直接生成到单一目录：
+
+```bash
+# 将 AIEF 资产集中生成到 AIEF/
+npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
+```
+
+指定 `--base-dir AIEF` 后，资产会生成到：
+- `AIEF/context/`
+- `AIEF/workflow/`
+- `AIEF/docs/standards/`
+- `AIEF/templates/`
+- `AIEF/scripts/`
 
 ### Before / After
 
@@ -251,6 +285,45 @@ your-project/
 从 L0 开始。感到需要时再升级。
 
 只要 `AGENTS.md` 和 `context/INDEX.md` 存在，即视为 L0 接入完成。
+
+## 引用校验
+
+当目录迁移（例如迁移到 `AIEF/`）后，可用以下命令校验并修复引用：
+
+```bash
+# 仅校验
+node scripts/aief.mjs validate refs
+
+# 校验并自动修复可确定场景
+node scripts/aief.mjs validate refs --fix
+
+# 统一校验入口（包含 refs 校验）
+node scripts/aief.mjs verify
+```
+
+校验覆盖：
+- Markdown 中的 AIEF 路径引用
+- `package.json` scripts 内的 AIEF 路径
+- AIEF 脚本中的 `templatePath(...)` 常量
+- `context/experience/INDEX.md` 的链接完整性
+
+## 资产迁移
+
+将 AIEF 资产集中迁移到单一目录，并自动修复引用：
+
+```bash
+# 仅预览迁移计划
+node scripts/aief.mjs migrate --to-base-dir AIEF --dry-run
+
+# 执行迁移 + 自动修复引用 + 自动校验
+node scripts/aief.mjs migrate --to-base-dir AIEF
+```
+
+行为说明：
+- 迁移 `context/`、`workflow/`、`docs/`、`templates/` 以及 `scripts/` 下 AIEF 相关脚本
+- 迁移后自动执行引用修复
+- 自动执行 `aief verify` 并输出迁移摘要
+- 命令幂等，可重复执行
 
 ## 回滚与安全性
 

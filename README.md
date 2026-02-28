@@ -54,7 +54,7 @@ Level cheat sheet for retrofit:
 
 ```bash
 # Step 1 - Run this in your project root
-npx --yes @tongsh6/aief-init@latest new
+npx --yes @tongsh6/aief-init@latest new --locale zh-CN
 ```
 
 This creates `AGENTS.md` and `context/INDEX.md`.
@@ -83,7 +83,7 @@ Done. Start coding with your AI assistant from this fixed entry point.
 ```bash
 # Step 1 - Run this in your project root
 # L0+ keeps code untouched and also generates a repo snapshot
-npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+npx --yes @tongsh6/aief-init@latest retrofit --level L1 --locale zh-CN
 ```
 
 This creates `AGENTS.md`, `context/INDEX.md`, and `context/tech/REPO_SNAPSHOT.md`.
@@ -104,6 +104,40 @@ Optional: Verify behavior in your AI tool:
 - Ask: "List the key constraints from `AGENTS.md` as 3 bullets." It should match what you wrote.
 
 Done. Start coding with your AI assistant from this fixed entry point.
+
+### Locale Support (`--locale`)
+
+`aief-init` supports localized template generation:
+
+```bash
+# Chinese templates (default)
+npx --yes @tongsh6/aief-init@latest new --locale zh-CN
+
+# English templates
+npx --yes @tongsh6/aief-init@latest retrofit --level L1 --locale en
+```
+
+Notes:
+- Supported locales: `zh-CN`, `en`
+- Default locale: `zh-CN`
+- Unsupported locale values automatically fall back to `zh-CN` with a warning
+- `L1` scaffold includes localized templates for `context/`, `workflow/`, `docs/standards/`, and `templates/`
+
+### Single-Directory Mode (`--base-dir`)
+
+Generate AIEF assets directly under a dedicated base folder:
+
+```bash
+# Create AIEF assets under AIEF/
+npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
+```
+
+With `--base-dir AIEF`, assets are generated under:
+- `AIEF/context/`
+- `AIEF/workflow/`
+- `AIEF/docs/standards/`
+- `AIEF/templates/`
+- `AIEF/scripts/`
 
 ### Before / After
 
@@ -251,6 +285,45 @@ For existing projects, adopt incrementally:
 Start at L0. Move up when you feel the need.
 
 L0 is considered adopted once `AGENTS.md` and `context/INDEX.md` exist.
+
+## Reference Validation
+
+When paths move (for example into `AIEF/`), use built-in reference checks:
+
+```bash
+# Validate references
+node scripts/aief.mjs validate refs
+
+# Validate and auto-fix deterministic cases
+node scripts/aief.mjs validate refs --fix
+
+# Unified verification entry (includes refs validation)
+node scripts/aief.mjs verify
+```
+
+What it checks:
+- Markdown path references in AIEF documents
+- AIEF-related script paths in `package.json` scripts
+- `templatePath(...)` constants inside AIEF scripts
+- `context/experience/INDEX.md` integrity and reachability
+
+## Asset Migration
+
+Move AIEF assets into a single base directory and auto-repair references:
+
+```bash
+# Preview migration only
+node scripts/aief.mjs migrate --to-base-dir AIEF --dry-run
+
+# Execute migration + auto-fix refs + run verify
+node scripts/aief.mjs migrate --to-base-dir AIEF
+```
+
+Behavior:
+- Migrates `context/`, `workflow/`, `docs/`, `templates/`, and AIEF-related files under `scripts/`
+- Auto-runs reference fixing after migration
+- Auto-runs `aief verify` and prints a migration summary report
+- Idempotent: safe to run repeatedly
 
 ## Rollback and Safety
 
