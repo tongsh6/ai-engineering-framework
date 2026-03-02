@@ -25,7 +25,17 @@
 ---
 
 ## 经验列表
+## 经验列表
 
+<!-- 按时间倒序排列，最新的在前 -->
+
+### 手动打 tag 绕过 release script 导致版本不一致
+
+- **类别**：踩坑记录
+- **日期**：2026-03-02
+- **关键词**：`release`, `tag`, `version`, `package.json`, `CI`, `GitFlow`, `npm publish`
+- **摘要**：发版时跳过 `scripts/release.mjs`，直接使用 `git tag`，导致 package.json 版本未同步，CI 版本校验失败，需手动删 tag 重来。
+- **文档**：`lessons/2026-03-02-release-script-bypass.md`
 <!-- 按时间倒序排列，最新的在前 -->
 
 ### [经验标题 1]
@@ -70,6 +80,10 @@
 
 | 经验 | 关键词 | 摘要 |
 |------|--------|------|
+| [手动打 tag 绕过 release script](lessons/2026-03-02-release-script-bypass.md) | `release`, `tag`, `version`, `CI` | 发版必须用 release script，手动 tag 会跳过版本号同步 |
+
+| 经验 | 关键词 | 摘要 |
+|------|--------|------|
 | [标题] | `kw1`, `kw2` | [摘要] |
 
 ---
@@ -90,6 +104,12 @@
 ---
 
 ## 审计报告
+
+> 项目/模块审计分析报告，使用 `reports/_template.md` 模板。
+
+| 报告 | 日期 | 范围 | 摘要 |
+|------|------|------|------|
+| [文档一致性审计](reports/2026-03-02-docs-cross-review.md) | 2026-03-02 | 全量文档 | 修复 8 处一致性/可读性/友好性问题，发布 v1.5.1 |
 
 > 项目/模块审计分析报告，使用 `reports/_template.md` 模板。
 
