@@ -48,8 +48,7 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 Retrofit 等级速记：
 
 - `L0`：仅生成最小入口文件
-- `L0+`：`L0` + 自动生成仓库快照
-
+- `L0+`：`L0` + 自动生成仓库快照（推荐作为已有项目的接入起点）
 ### 场景 A：新项目
 
 ```bash
@@ -83,10 +82,10 @@ npx --yes @tongsh6/aief-init@latest new --locale zh-CN
 ```bash
 # 第 1 步 - 在项目根目录执行
 # L0+ 不改业务代码，同时生成仓库快照
-npx --yes @tongsh6/aief-init@latest retrofit --level L1 --locale zh-CN
+npx --yes @tongsh6/aief-init@latest retrofit --level L0+ --locale zh-CN
 ```
 
-这会生成 `AGENTS.md`、`context/INDEX.md` 以及 `context/tech/REPO_SNAPSHOT.md`。
+这会生成 `AGENTS.md`、`context/INDEX.md` 以及 `context/tech/REPO_SNAPSHOT.md`（L0+ 等级）。
 
 第 2 步 - 检查生成文件：
 
@@ -286,7 +285,8 @@ your-project/
 
 只要 `AGENTS.md` 和 `context/INDEX.md` 存在，即视为 L0 接入完成。
 
-## 引用校验
+<details>
+<summary><strong>引用校验</strong></summary>
 
 当目录迁移（例如迁移到 `AIEF/`）后，可用以下命令校验并修复引用：
 
@@ -307,7 +307,10 @@ node scripts/aief.mjs verify
 - AIEF 脚本中的 `templatePath(...)` 常量
 - `context/experience/INDEX.md` 的链接完整性
 
-## 资产迁移
+</details>
+
+<details>
+<summary><strong>资产迁移</strong></summary>
 
 将 AIEF 资产集中迁移到单一目录，并自动修复引用：
 
@@ -325,6 +328,7 @@ node scripts/aief.mjs migrate --to-base-dir AIEF
 - 自动执行 `aief verify` 并输出迁移摘要
 - 命令幂等，可重复执行
 
+</details>
 ## 回滚与安全性
 
 AIEF 是旁路式规范，不会侵入你的业务代码结构。

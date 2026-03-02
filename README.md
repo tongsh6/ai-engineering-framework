@@ -47,14 +47,13 @@ Choose one path. Both are non-invasive and do not change your business code stru
 
 Level cheat sheet for retrofit:
 
-- `L0`: create the minimum entry files only
-- `L0+`: `L0` plus an auto-generated repo snapshot
-
+- `L0`: minimum entry files only
+- `L0+`: `L0` plus an auto-generated repo snapshot (recommended for existing projects)
 ### Option A: New Project
 
 ```bash
 # Step 1 - Run this in your project root
-npx --yes @tongsh6/aief-init@latest new --locale zh-CN
+npx --yes @tongsh6/aief-init@latest new --locale en
 ```
 
 This creates `AGENTS.md` and `context/INDEX.md`.
@@ -83,10 +82,10 @@ Done. Start coding with your AI assistant from this fixed entry point.
 ```bash
 # Step 1 - Run this in your project root
 # L0+ keeps code untouched and also generates a repo snapshot
-npx --yes @tongsh6/aief-init@latest retrofit --level L1 --locale zh-CN
+npx --yes @tongsh6/aief-init@latest retrofit --level L0+ --locale en
 ```
 
-This creates `AGENTS.md`, `context/INDEX.md`, and `context/tech/REPO_SNAPSHOT.md`.
+This creates `AGENTS.md`, `context/INDEX.md`, and `context/tech/REPO_SNAPSHOT.md` (L0+ level).
 
 Step 2 - Check generated files:
 
@@ -286,7 +285,8 @@ Start at L0. Move up when you feel the need.
 
 L0 is considered adopted once `AGENTS.md` and `context/INDEX.md` exist.
 
-## Reference Validation
+<details>
+<summary><strong>Reference Validation</strong></summary>
 
 When paths move (for example into `AIEF/`), use built-in reference checks:
 
@@ -307,7 +307,10 @@ What it checks:
 - `templatePath(...)` constants inside AIEF scripts
 - `context/experience/INDEX.md` integrity and reachability
 
-## Asset Migration
+</details>
+
+<details>
+<summary><strong>Asset Migration</strong></summary>
 
 Move AIEF assets into a single base directory and auto-repair references:
 
@@ -324,6 +327,8 @@ Behavior:
 - Auto-runs reference fixing after migration
 - Auto-runs `aief verify` and prints a migration summary report
 - Idempotent: safe to run repeatedly
+
+</details>
 
 ## Rollback and Safety
 
