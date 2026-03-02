@@ -1,10 +1,15 @@
-# Migration Levels
+# 迁移等级说明
 
 迁移等级用于 Existing Project Init（Retrofit），用于降低接入阻力。
 
 L0（插入口，不要求内容）：
 - 新增 AGENTS.md
 - 新增 context/INDEX.md
+
+L0+（L0 + 仓库快照）：
+- 在 L0 基础上，自动生成 context/tech/REPO_SNAPSHOT.md
+- 让 AI 能快速读懂仓库技术栈和目录结构
+- 推荐作为已有项目的最低接入标准
 
 L1（最小可读性）：
 - 补充 context/business/ 一页核心业务说明

@@ -27,7 +27,7 @@ AIEF（AI Engineering Framework）是一套“项目级 AI 协作入口规范”
 npx --yes @tongsh6/aief-init@latest new
 ```
 
-已有项目（推荐 L0+，会生成仓库快照）：
+已有项目（使用 retrofit 命令无损接入，推荐 L0+，会生成仓库快照）：
 
 ```bash
 npx --yes @tongsh6/aief-init@latest retrofit --level L0+
