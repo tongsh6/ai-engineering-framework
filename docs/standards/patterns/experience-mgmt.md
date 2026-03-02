@@ -206,6 +206,6 @@
 
 ## 参考
 
-- [context/experience/INDEX.md](../../context/experience/INDEX.md) — 经验索引
-- [context/experience/lessons/_template.md](../../context/experience/lessons/_template.md) — 经验文档模板
+- [context/experience/INDEX.md](../../../context/experience/INDEX.md) — 经验索引
+- [context/experience/lessons/_template.md](../../../context/experience/lessons/_template.md) — 经验文档模板
 - [上下文加载模式](context-loading.md) — 上下文加载策略
