@@ -34,6 +34,7 @@ function printHelp() {
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
       '  --force              Overwrite existing files',
+      '  --skip-existing      Silently skip files that already exist',
       '  --dry-run            Print actions without writing',
       '  -h, --help           Show help',
       '',
@@ -55,12 +56,14 @@ function parseArgs(argv) {
     locale: DEFAULT_LOCALE,
     baseDir: '',
     force: false,
+    skipExisting: false,
     dryRun: false,
   }
 
   for (let i = 1; i < args.length; i += 1) {
     const a = args[i]
     if (a === '--force') opts.force = true
+    else if (a === '--skip-existing') opts.skipExisting = true
     else if (a === '--dry-run') opts.dryRun = true
     else if (a === '--level') {
       const v = args[i + 1]
@@ -102,11 +105,17 @@ function ensureDir(dirPath, { dryRun } = {}) {
   fs.mkdirSync(dirPath, { recursive: true })
 }
 
-function writeFile(filePath, content, { force, dryRun } = {}) {
+function writeFile(filePath, content, { force, skipExisting, dryRun } = {}) {
   if (dryRun) {
+    if (skipExisting && exists(filePath)) {
+      process.stdout.write(`[dry-run] skip (exists) ${filePath}\n`)
+      return
+    }
     process.stdout.write(`[dry-run] write ${filePath}\n`)
     return
   }
+
+  if (skipExisting && exists(filePath)) return
 
   ensureDir(path.dirname(filePath))
   const flags = force ? 'w' : 'wx'
@@ -117,11 +126,16 @@ function readText(filePath) {
   return fs.readFileSync(filePath, 'utf8')
 }
 
-function copyFile(src, dst, { force, dryRun } = {}) {
+function copyFile(src, dst, { force, skipExisting, dryRun } = {}) {
   if (dryRun) {
+    if (skipExisting && exists(dst)) {
+      process.stdout.write(`[dry-run] skip (exists) ${dst}\n`)
+      return
+    }
     process.stdout.write(`[dry-run] copy ${src} -> ${dst}\n`)
     return
   }
+  if (skipExisting && exists(dst)) return
   ensureDir(path.dirname(dst))
   const flags = force ? 0 : fs.constants.COPYFILE_EXCL
   fs.copyFileSync(src, dst, flags)
@@ -482,32 +496,33 @@ function buildScaffoldTemplates(locale) {
   }
 }
 
-function initMinimal({ locale, baseDir, force, dryRun } = {}) {
+function initMinimal({ locale, baseDir, force, skipExisting, dryRun } = {}) {
   const base = normalizeBaseDir(baseDir)
   const minimal = buildMinimalTemplates(locale, base)
   const bKeep = templatePath('templates/minimal/context/business/.gitkeep')
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
-  writeFile(repoPath('', 'AGENTS.md'), `${minimal.agents}\n`, { force, dryRun })
-  writeFile(repoPath(base, 'context/INDEX.md'), `${minimal.index}\n`, { force, dryRun })
+  const agentsPath = base ? repoPath(base, 'AGENTS.md') : repoPath('', 'AGENTS.md')
+  writeFile(agentsPath, `${minimal.agents}\n`, { force, skipExisting, dryRun })
+  writeFile(repoPath(base, 'context/INDEX.md'), `${minimal.index}\n`, { force, skipExisting, dryRun })
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
   ensureDir(repoPath(base, 'context/experience'), { dryRun })
 
-  if (exists(bKeep)) copyFile(bKeep, repoPath(base, 'context/business/.gitkeep'), { force, dryRun })
-  if (exists(tKeep)) copyFile(tKeep, repoPath(base, 'context/tech/.gitkeep'), { force, dryRun })
-  if (exists(eKeep)) copyFile(eKeep, repoPath(base, 'context/experience/.gitkeep'), { force, dryRun })
+  if (exists(bKeep)) copyFile(bKeep, repoPath(base, 'context/business/.gitkeep'), { force, skipExisting, dryRun })
+  if (exists(tKeep)) copyFile(tKeep, repoPath(base, 'context/tech/.gitkeep'), { force, skipExisting, dryRun })
+  if (exists(eKeep)) copyFile(eKeep, repoPath(base, 'context/experience/.gitkeep'), { force, skipExisting, dryRun })
 
   if (base) {
     ensureDir(repoPath(base, 'scripts'), { dryRun })
   }
 }
 
-function initRetrofit({ level, locale, baseDir, force, dryRun } = {}) {
+function initRetrofit({ level, locale, baseDir, force, skipExisting, dryRun } = {}) {
   const base = normalizeBaseDir(baseDir)
-  initMinimal({ locale, baseDir: base, force, dryRun })
+  initMinimal({ locale, baseDir: base, force, skipExisting, dryRun })
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1') {
@@ -516,12 +531,12 @@ function initRetrofit({ level, locale, baseDir, force, dryRun } = {}) {
 
   const snapshotPath = repoPath(base, 'context/tech/REPO_SNAPSHOT.md')
   const snapshotContent = formatRepoSnapshot(process.cwd(), locale)
-  writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  writeFile(snapshotPath, snapshotContent, { force, skipExisting, dryRun })
 
   if (level === 'L1') {
     const scaffoldTemplates = buildScaffoldTemplates(locale)
     for (const [targetPath, content] of Object.entries(scaffoldTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      writeFile(repoPath(base, targetPath), content, { force, skipExisting, dryRun })
     }
 
     if (base) {
@@ -559,6 +574,7 @@ function main() {
         locale: localeResult.locale,
         baseDir,
         force: opts.force,
+        skipExisting: opts.skipExisting,
         dryRun: opts.dryRun,
       })
       process.stdout.write(
@@ -573,6 +589,7 @@ function main() {
         locale: localeResult.locale,
         baseDir,
         force: opts.force,
+        skipExisting: opts.skipExisting,
         dryRun: opts.dryRun,
       })
       process.stdout.write(
