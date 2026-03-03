@@ -24,3 +24,4 @@ Locale options:
 Base directory option:
 
     --base-dir AIEF
+    --root-agents      # also write AGENTS.md in repo root (default skips it when --base-dir is set)

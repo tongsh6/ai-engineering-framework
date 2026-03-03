@@ -26,6 +26,7 @@ Locale options:
 Base directory option:
 
     --base-dir AIEF
+    --root-agents      # also write AGENTS.md in repo root (default skips it when --base-dir is set)
 
 Notes:
 - It only writes AIEF entry files (AGENTS.md + context/*). It does not modify your existing code structure.

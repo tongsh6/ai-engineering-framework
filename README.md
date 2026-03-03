@@ -132,11 +132,14 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
 ```
 
 With `--base-dir AIEF`, assets are generated under:
+- `AIEF/AGENTS.md` (default; add `--root-agents` to also write AGENTS.md in repo root)
 - `AIEF/context/`
 - `AIEF/workflow/`
 - `AIEF/docs/standards/`
 - `AIEF/templates/`
 - `AIEF/scripts/`
+
+By default, root-level `AGENTS.md` is not touched when `--base-dir` is provided. Use `--root-agents` if you want a copy in repo root as well.
 
 ### Before / After
 

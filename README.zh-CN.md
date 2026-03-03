@@ -132,11 +132,14 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
 ```
 
 指定 `--base-dir AIEF` 后，资产会生成到：
+- `AIEF/AGENTS.md`（默认；如需同时写根目录，可加 `--root-agents`）
 - `AIEF/context/`
 - `AIEF/workflow/`
 - `AIEF/docs/standards/`
 - `AIEF/templates/`
 - `AIEF/scripts/`
+
+指定 `--base-dir` 时默认不改动根目录的 `AGENTS.md`。如需保留根目录副本，可显式传 `--root-agents`。
 
 ### Before / After
 

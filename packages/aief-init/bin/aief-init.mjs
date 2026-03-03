@@ -33,6 +33,8 @@ function printHelp() {
       '  --level <L0|L0+|L1>   Migration level for retrofit (default: L0+)',
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
+      '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
+      '  --no-root-agents     Skip writing AGENTS.md at repo root',
       '  --force              Overwrite existing files',
       '  --dry-run            Print actions without writing',
       '  -h, --help           Show help',
@@ -77,6 +79,10 @@ function parseArgs(argv) {
       if (!v) throw new Error('Missing value for --base-dir')
       opts.baseDir = v
       i += 1
+    } else if (a === '--root-agents') {
+      opts.rootAgents = true
+    } else if (a === '--no-root-agents') {
+      opts.rootAgents = false
     } else {
       throw new Error(`Unknown option: ${a}`)
     }
@@ -358,8 +364,7 @@ function resolveLocale(input) {
   }
 }
 
-function buildMinimalTemplates(locale, baseDir) {
-  const contextEntry = scopedRelPath(baseDir, 'context/INDEX.md')
+function buildMinimalTemplates(locale, contextEntry) {
 
   if (locale === 'en') {
     return {
@@ -482,15 +487,26 @@ function buildScaffoldTemplates(locale) {
   }
 }
 
-function initMinimal({ locale, baseDir, force, dryRun } = {}) {
+function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   const base = normalizeBaseDir(baseDir)
-  const minimal = buildMinimalTemplates(locale, base)
+  const shouldWriteRootAgents = typeof writeRootAgents === 'boolean' ? writeRootAgents : !base
+  const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
+  const baseContextEntry = 'context/INDEX.md'
+  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry)
+  const baseTemplates = buildMinimalTemplates(locale, baseContextEntry)
   const bKeep = templatePath('templates/minimal/context/business/.gitkeep')
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
-  writeFile(repoPath('', 'AGENTS.md'), `${minimal.agents}\n`, { force, dryRun })
-  writeFile(repoPath(base, 'context/INDEX.md'), `${minimal.index}\n`, { force, dryRun })
+  if (base) {
+    writeFile(repoPath(base, 'AGENTS.md'), `${baseTemplates.agents}\n`, { force, dryRun })
+  }
+
+  if (shouldWriteRootAgents) {
+    writeFile(repoPath('', 'AGENTS.md'), `${rootTemplates.agents}\n`, { force, dryRun })
+  }
+
+  writeFile(repoPath(base, 'context/INDEX.md'), `${baseTemplates.index}\n`, { force, dryRun })
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
@@ -505,9 +521,9 @@ function initMinimal({ locale, baseDir, force, dryRun } = {}) {
   }
 }
 
-function initRetrofit({ level, locale, baseDir, force, dryRun } = {}) {
+function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   const base = normalizeBaseDir(baseDir)
-  initMinimal({ locale, baseDir: base, force, dryRun })
+  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents })
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1') {
@@ -547,6 +563,7 @@ function main() {
 
   const localeResult = resolveLocale(opts.locale)
   const baseDir = normalizeBaseDir(opts.baseDir)
+  const writeRootAgents = typeof opts.rootAgents === 'boolean' ? opts.rootAgents : !baseDir
   if (localeResult.usedFallback) {
     process.stdout.write(
       `[warn] Unsupported locale "${localeResult.requested}". Falling back to ${DEFAULT_LOCALE}.\n`
@@ -560,9 +577,10 @@ function main() {
         baseDir,
         force: opts.force,
         dryRun: opts.dryRun,
+        writeRootAgents,
       })
       process.stdout.write(
-        `Done. Created minimal AIEF entry (AGENTS.md + ${scopedRelPath(baseDir, 'context/')}). Locale: ${localeResult.locale}.\n`
+        `Done. Created minimal AIEF entry (${scopedRelPath(baseDir, 'AGENTS.md')} + ${scopedRelPath(baseDir, 'context/')}). Locale: ${localeResult.locale}.\n`
       )
       return
     }
@@ -574,6 +592,7 @@ function main() {
         baseDir,
         force: opts.force,
         dryRun: opts.dryRun,
+        writeRootAgents,
       })
       process.stdout.write(
         `Done. Retrofit init at level ${opts.level}. Base dir: ${baseDir || '.'}. Locale: ${localeResult.locale}.\n`
