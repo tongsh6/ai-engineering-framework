@@ -487,7 +487,7 @@ function initMinimal({ locale, baseDir, force, dryRun } = {}) {
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
-  writeFile(repoPath('', 'AGENTS.md'), `${minimal.agents}\n`, { force, dryRun })
+  writeFile(repoPath(base, 'AGENTS.md'), `${minimal.agents}\n`, { force, dryRun })
   writeFile(repoPath(base, 'context/INDEX.md'), `${minimal.index}\n`, { force, dryRun })
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
