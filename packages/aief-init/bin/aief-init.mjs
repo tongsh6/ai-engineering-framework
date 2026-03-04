@@ -6,6 +6,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { spawnSync } from 'node:child_process'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -28,13 +29,17 @@ function printHelp() {
       '  aief-init new',
       '  aief-init retrofit --level L0',
       '  aief-init retrofit --level L0+',
+      '  aief-init validate refs [--fix] [--base-dir <path>]',
+      '  aief-init migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]',
       '',
       'Options:',
       '  --level <L0|L0+|L1|L2|L3>   Migration level for retrofit (default: L0+)',
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
+      '  --to-base-dir <path>  Migration target base directory (for migrate)',
       '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
       '  --no-root-agents     Skip writing AGENTS.md at repo root',
+      '  --fix                Auto-fix deterministic reference issues (for validate refs)',
       '  --force              Overwrite existing files',
       '  --dry-run            Print actions without writing',
       '  -h, --help           Show help',
@@ -53,17 +58,32 @@ function parseArgs(argv) {
   const command = args[0]
   const opts = {
     command,
+    subcommand: undefined,
     level: 'L0+',
     locale: DEFAULT_LOCALE,
     baseDir: '',
     force: false,
     dryRun: false,
+    fix: false,
+    toBaseDir: undefined,
   }
 
-  for (let i = 1; i < args.length; i += 1) {
+  let start = 1
+  if (command === 'validate') {
+    opts.subcommand = args[1]
+    start = 2
+  } else if (command === 'migrate') {
+    if (args[1] && !args[1].startsWith('-')) {
+      opts.subcommand = args[1]
+      start = 2
+    }
+  }
+
+  for (let i = start; i < args.length; i += 1) {
     const a = args[i]
     if (a === '--force') opts.force = true
     else if (a === '--dry-run') opts.dryRun = true
+    else if (a === '--fix') opts.fix = true
     else if (a === '--level') {
       const v = args[i + 1]
       if (!v) throw new Error('Missing value for --level')
@@ -78,6 +98,11 @@ function parseArgs(argv) {
       const v = args[i + 1]
       if (!v) throw new Error('Missing value for --base-dir')
       opts.baseDir = v
+      i += 1
+    } else if (a === '--to-base-dir') {
+      const v = args[i + 1]
+      if (!v) throw new Error('Missing value for --to-base-dir')
+      opts.toBaseDir = v
       i += 1
     } else if (a === '--root-agents') {
       opts.rootAgents = true
@@ -982,6 +1007,25 @@ function main() {
   if (opts.help || !opts.command) {
     printHelp()
     process.exit(0)
+  }
+
+  // validate and migrate delegate to scripts/aief.mjs in the project root
+  if (opts.command === 'validate' || opts.command === 'migrate') {
+    const projectRoot = opts.baseDir ? path.resolve(process.cwd(), opts.baseDir) : process.cwd()
+    const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
+    if (!exists(scriptPath)) {
+      process.stderr.write(
+        `Error: scripts/aief.mjs not found at ${scriptPath}.\n` +
+          'Run `aief-init retrofit --level L1` first to scaffold the scripts directory.\n'
+      )
+      process.exit(1)
+    }
+    const forwardArgs = process.argv.slice(2)
+    const result = spawnSync(process.execPath, [scriptPath, ...forwardArgs], {
+      stdio: 'inherit',
+      cwd: projectRoot,
+    })
+    process.exit(result.status ?? 1)
   }
 
   const localeResult = resolveLocale(opts.locale)
