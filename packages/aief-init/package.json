@@ -18,9 +18,11 @@
   },
   "files": [
     "bin/",
-    "templates/",
     "README.md"
   ],
+  "dependencies": {
+    "@tongsh6/ai-engineering-framework-init": "1.7.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tongsh6/ai-engineering-framework.git"
