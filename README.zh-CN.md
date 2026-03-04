@@ -153,6 +153,9 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
 # 项目健康诊断（入口文件 + 引用一致性 + 脚本可用性）
 npx --yes @tongsh6/aief-init@latest doctor
 
+# 机器可读输出（便于 CI/脚本）
+npx --yes @tongsh6/aief-init@latest doctor --json
+
 # 校验 AIEF 路径引用
 npx --yes @tongsh6/aief-init@latest validate refs
 
@@ -171,6 +174,17 @@ npx --yes @tongsh6/aief-init@latest migrate --to-base-dir AIEF
 - `--force`：覆盖已存在文件（升级到 `L2`/`L3` 时常用）
 - `--base-dir <path>`：将资产统一输出到单目录
 - `--root-agents`：配合 `--base-dir` 时，同时写入根目录 `AGENTS.md`
+
+Doctor 输出示例：
+
+```text
+Doctor report for /path/to/project
+[PASS] AGENTS.md entry file
+[PASS] context/INDEX.md entry file
+[WARN] scripts/aief.mjs available
+       hint: Run `aief-init retrofit --level L1` to enable `validate`/`migrate` delegation.
+Summary: pass=2, warn=1, fail=0, blockingFail=0
+```
 
 ### Before / After
 

@@ -66,3 +66,17 @@ test('canonical CLI doctor reports missing entry files on empty directory', () =
     cleanup(dir)
   }
 })
+
+test('canonical CLI doctor --json returns machine-readable summary', () => {
+  const dir = makeTmp()
+  try {
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    const payload = JSON.parse(r.stdout)
+    assert.equal(payload.summary.fail, 2)
+    assert.equal(payload.summary.warn, 1)
+    assert.equal(payload.summary.blockingFail, 2)
+  } finally {
+    cleanup(dir)
+  }
+})
