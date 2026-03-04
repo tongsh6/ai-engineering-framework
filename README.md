@@ -421,6 +421,26 @@ Build, runtime, and git history remain unaffected.
 
 ---
 
+## Recent Releases
+
+- `v1.6.0` - add `L2`/`L3` migration levels
+- `v1.7.0` - add `validate refs` and `migrate` subcommands
+- `v1.8.0` - make `@tongsh6/aief-init` a thin wrapper delegating to canonical package
+- `v1.8.1` - documentation consistency pass + release/test workflow hardening
+
+## Release Verification
+
+- Post-release checklist: `docs/release-post-checklist.md`
+- Automated verifier:
+
+```bash
+node scripts/post-release-check.mjs 1.8.1
+```
+
+## Roadmap
+
+- Next iteration plan: `docs/ROADMAP_v1.9.0.md`
+
 ## References
 
 - [AGENTS.md Standard](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - Tool-agnostic AI guide standard
