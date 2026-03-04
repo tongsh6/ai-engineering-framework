@@ -420,6 +420,26 @@ AIEF 是旁路式规范，不会侵入你的业务代码结构。
 
 ---
 
+## 最近版本快照
+
+- `v1.6.0` - 新增 `L2`/`L3` 迁移等级
+- `v1.7.0` - 新增 `validate refs` 与 `migrate` 子命令
+- `v1.8.0` - `@tongsh6/aief-init` 调整为委托 canonical 包的薄包装
+- `v1.8.1` - 文档一致性修复 + 发布/测试流程加固
+
+## 发布后校验
+
+- 发布核对清单：`docs/release-post-checklist.md`
+- 自动校验脚本：
+
+```bash
+node scripts/post-release-check.mjs 1.8.1
+```
+
+## 规划
+
+- 下一迭代计划：`docs/ROADMAP_v1.9.0.md`
+
 ## 参考资源
 
 - [AGENTS.md 标准](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) - 工具无关的 AI 指南标准
