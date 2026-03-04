@@ -5,7 +5,7 @@ Use this checklist immediately after tagging a release to confirm that GitHub an
 ## 1) Run automated checks
 
 ```bash
-node scripts/post-release-check.mjs 1.8.1
+node scripts/post-release-check.mjs <version>
 ```
 
 The script validates:
@@ -19,7 +19,7 @@ The script validates:
 ## 2) Manual spot-check (optional but recommended)
 
 ```bash
-gh release view v1.8.1 --repo tongsh6/ai-engineering-framework
+gh release view v<version> --repo tongsh6/ai-engineering-framework
 gh run list --repo tongsh6/ai-engineering-framework --workflow "Release & Publish" --limit 5
 npm view @tongsh6/aief-init version
 npm view @tongsh6/ai-engineering-framework-init version

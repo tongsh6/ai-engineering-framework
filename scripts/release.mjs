@@ -13,6 +13,7 @@
  *   1. Validates the version format (semver, no "v" prefix)
  *   2. Ensures you are on the main branch with a clean working tree
  *   3. Updates both package.json files to the target version
+ *      (and syncs alias dependency to canonical package version)
  *   4. Commits: "release: v<version>"
  *   5. Tags: v<version>
  *   6. Pushes commit + tag to origin
@@ -88,6 +89,9 @@ const PACKAGES = [
   'packages/ai-engineering-framework-init/package.json',
 ]
 
+const ALIAS_PACKAGE = 'packages/aief-init/package.json'
+const CANONICAL_PACKAGE_NAME = '@tongsh6/ai-engineering-framework-init'
+
 console.log(`\nReleasing v${version}\n`)
 
 for (const rel of PACKAGES) {
@@ -97,6 +101,21 @@ for (const rel of PACKAGES) {
   pkg.version = version
   fs.writeFileSync(abs, JSON.stringify(pkg, null, 2) + '\n')
   info(`${pkg.name}: ${old} → ${version}`)
+}
+
+// Keep alias dependency pinned to the same canonical package version.
+{
+  const aliasAbs = path.join(ROOT, ALIAS_PACKAGE)
+  const aliasPkg = JSON.parse(fs.readFileSync(aliasAbs, 'utf-8'))
+  const deps = aliasPkg.dependencies || {}
+  const oldDepVersion = deps[CANONICAL_PACKAGE_NAME]
+  if (oldDepVersion !== version) {
+    aliasPkg.dependencies = { ...deps, [CANONICAL_PACKAGE_NAME]: version }
+    fs.writeFileSync(aliasAbs, JSON.stringify(aliasPkg, null, 2) + '\n')
+    info(
+      `${CANONICAL_PACKAGE_NAME} dependency: ${oldDepVersion || '(unset)'} → ${version}`
+    )
+  }
 }
 
 // ---------------------------------------------------------------------------

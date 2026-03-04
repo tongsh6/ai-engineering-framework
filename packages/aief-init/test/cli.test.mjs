@@ -8,9 +8,25 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CLI = path.join(__dirname, '..', 'bin', 'aief-init.mjs')
+const CANONICAL_CLI = path.join(
+  __dirname,
+  '..',
+  '..',
+  'ai-engineering-framework-init',
+  'bin',
+  'aief-init.mjs'
+)
 
 function run(args, opts = {}) {
   return spawnSync(process.execPath, [CLI, ...args], {
+    encoding: 'utf8',
+    cwd: opts.cwd ?? process.cwd(),
+    env: { ...process.env, NO_COLOR: '1' },
+  })
+}
+
+function runCanonical(args, opts = {}) {
+  return spawnSync(process.execPath, [CANONICAL_CLI, ...args], {
     encoding: 'utf8',
     cwd: opts.cwd ?? process.cwd(),
     env: { ...process.env, NO_COLOR: '1' },
@@ -41,6 +57,13 @@ test('no args prints help and exits 0', () => {
   const r = run([])
   assert.equal(r.status, 0)
   assert.match(r.stdout, /aief-init/)
+})
+
+test('canonical --help prints usage and exits 0', () => {
+  const r = runCanonical(['--help'])
+  assert.equal(r.status, 0)
+  assert.match(r.stdout, /aief-init/)
+  assert.match(r.stdout, /doctor/)
 })
 
 // ── Unknown command ───────────────────────────────────────────────────────────
@@ -192,6 +215,18 @@ test('doctor after L0 retrofit exits 0 and warns about missing scripts/aief.mjs'
     assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
     assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)
     assert.match(r2.stdout, /\[WARN\] scripts\/aief\.mjs available/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('canonical doctor on empty directory exits non-zero', () => {
+  const dir = makeTmp()
+  try {
+    const r = runCanonical(['doctor'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
+    assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
   } finally {
     cleanup(dir)
   }
