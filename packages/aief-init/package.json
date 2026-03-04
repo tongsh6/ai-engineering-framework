@@ -1,6 +1,6 @@
 {
   "name": "@tongsh6/aief-init",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Short alias for @tongsh6/ai-engineering-framework-init",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@tongsh6/ai-engineering-framework-init": "1.9.0"
+    "@tongsh6/ai-engineering-framework-init": "1.9.1"
   },
   "repository": {
     "type": "git",
