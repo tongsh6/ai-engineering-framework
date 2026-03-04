@@ -20,6 +20,10 @@
 - New Project: npx --yes @tongsh6/aief-init@latest new
 - Existing Project (Retrofit): npx --yes @tongsh6/aief-init@latest retrofit --level L0+
 
+等级说明：
+- Existing Project 支持 `L0`、`L0+`、`L1`、`L2`、`L3`
+- 详细定义见 `init/MIGRATION_LEVELS.md`
+
 说明：
 - @tongsh6/aief-init 是短命令别名包
 - 官方全名包：@tongsh6/ai-engineering-framework-init
@@ -32,3 +36,8 @@
 一键迁移（收敛到单目录）：
 - 预览：`node scripts/aief.mjs migrate --to-base-dir AIEF --dry-run`
 - 执行：`node scripts/aief.mjs migrate --to-base-dir AIEF`
+
+常用参数补充：
+- `--force`：覆盖已有文件（升级到 L2/L3 时常用）
+- `--base-dir <path>`：将 AIEF 资产统一写入子目录
+- `--root-agents`：配合 `--base-dir`，同时在仓库根目录写 `AGENTS.md`

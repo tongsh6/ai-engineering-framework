@@ -90,4 +90,4 @@ AI 接收任务时，根据以下规则判断流程：
 
 1. **提案阶段**对应 OpenSpec 的 `changes/` 目录
 2. **设计阶段**对应 `design.md` 文件
-3. 参阅 `openspec/AGENTS.md` 获取详细流程
+3. 若仓库启用了 OpenSpec，再参阅 `openspec/AGENTS.md`；否则按 `workflow/phases/` 执行

@@ -14,6 +14,10 @@ Canonical package name (full):
 
     npx --yes @tongsh6/ai-engineering-framework-init@latest retrofit --level L0+
 
+    npx --yes @tongsh6/ai-engineering-framework-init@latest retrofit --level L2 --force
+
+    npx --yes @tongsh6/ai-engineering-framework-init@latest retrofit --level L3 --force
+
 Single-directory mode:
 
     npx --yes @tongsh6/ai-engineering-framework-init@latest retrofit --level L1 --base-dir AIEF
@@ -27,6 +31,13 @@ Base directory option:
 
     --base-dir AIEF
     --root-agents      # also write AGENTS.md in repo root (default skips it when --base-dir is set)
+
+Subcommands:
+
+    new [--locale zh-CN|en] [--base-dir <path>] [--dry-run] [--force]
+    retrofit --level L0|L0+|L1|L2|L3 [--locale zh-CN|en] [--base-dir <path>] [--dry-run] [--force] [--root-agents]
+    validate refs [--fix] [--base-dir <path>]
+    migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]
 
 Notes:
 - It only writes AIEF entry files (AGENTS.md + context/*). It does not modify your existing code structure.
