@@ -20,6 +20,7 @@ L2（可选增强）：
 - 引入 experience 模板
 - 引入 Skill/Command/Agent 标准规范（docs/standards/）
 - 可开启校验机制（例如：PR 检查、CI 校验）
+- 升级到 L2/L3 时如遇同名文件，可使用 `--force` 覆盖
 
 L3（持续运行）：
 - 持续沉淀经验
@@ -29,3 +30,8 @@ L3（持续运行）：
 注意：
 - L0 不修改现有代码结构
 - L0/L1 都不要求一次性补齐历史文档
+
+推荐命令示例：
+- `npx --yes @tongsh6/aief-init@latest retrofit --level L0+ --locale zh-CN`
+- `npx --yes @tongsh6/aief-init@latest retrofit --level L2 --locale zh-CN --force`
+- `npx --yes @tongsh6/aief-init@latest retrofit --level L3 --locale zh-CN --force`

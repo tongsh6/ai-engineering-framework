@@ -44,6 +44,7 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 ## 5 分钟快速开始
 
 二选一即可。两条路径都不改你的业务代码结构。
+默认 locale 是 `zh-CN`；如需英文模板，请显式传 `--locale en`。
 
 Retrofit 等级速记：
 
@@ -143,6 +144,30 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
 - `AIEF/scripts/`
 
 指定 `--base-dir` 时默认不改动根目录的 `AGENTS.md`。如需保留根目录副本，可显式传 `--root-agents`。
+
+### 高级命令
+
+初始化/迁移后，建议用以下命令维护引用一致性并执行资产迁移：
+
+```bash
+# 校验 AIEF 路径引用
+npx --yes @tongsh6/aief-init@latest validate refs
+
+# 校验并自动修复可确定场景
+npx --yes @tongsh6/aief-init@latest validate refs --fix
+
+# 预览迁移到单目录
+npx --yes @tongsh6/aief-init@latest migrate --to-base-dir AIEF --dry-run
+
+# 执行迁移 + 自动修复 + 校验
+npx --yes @tongsh6/aief-init@latest migrate --to-base-dir AIEF
+```
+
+常用参数：
+- `--dry-run`：仅预览，不写文件
+- `--force`：覆盖已存在文件（升级到 `L2`/`L3` 时常用）
+- `--base-dir <path>`：将资产统一输出到单目录
+- `--root-agents`：配合 `--base-dir` 时，同时写入根目录 `AGENTS.md`
 
 ### Before / After
 

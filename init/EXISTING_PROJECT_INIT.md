@@ -10,11 +10,11 @@
 2. 不要求一次性补齐文档
 3. 先插入口，再逐步演进
 
-初始化必须至少生成：
+推荐最小可用（L0+）应生成：
 
     context/tech/REPO_SNAPSHOT.md
 
-这是 Retrofit 的突破点：提供一份可修改的初稿，避免从空白开始。
+这是 L0+ 的关键价值：提供一份可修改的初稿，避免从空白开始。
 
 推荐迁移路径：
 
@@ -37,6 +37,12 @@ L1（按需，通常 1-2 小时内可完成）：
 - context/business/ 一页业务说明
 - context/tech/ 一页技术与架构说明
 
+L2/L3（按需增强）：
+- L2：补齐 workflow、经验模板和 Skill/Command/Agent 规范
+- L3：引入跨切面模式并持续沉淀经验
+- 详见：`init/MIGRATION_LEVELS.md`
+
 完成标准：
 - 人能在 1 分钟内找到入口（AGENTS.md）
-- AI 能在 1 分钟内读到仓库快照（context/tech/REPO_SNAPSHOT.md）
+- L0：AI 能在 1 分钟内定位上下文入口（context/INDEX.md）
+- L0+：AI 能在 1 分钟内读到仓库快照（context/tech/REPO_SNAPSHOT.md）

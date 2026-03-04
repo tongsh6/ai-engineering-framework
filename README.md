@@ -44,6 +44,7 @@ This framework solves these with one stable, project-level entry point.
 ## 5-Minute Quick Start
 
 Choose one path. Both are non-invasive and do not change your business code structure.
+Default locale is `zh-CN`; pass `--locale en` if you want English templates.
 
 Level cheat sheet for retrofit:
 
@@ -143,6 +144,30 @@ With `--base-dir AIEF`, assets are generated under:
 - `AIEF/scripts/`
 
 By default, root-level `AGENTS.md` is not touched when `--base-dir` is provided. Use `--root-agents` if you want a copy in repo root as well.
+
+### Advanced Commands
+
+Use these commands after initialization/retrofit to keep paths consistent and migrate assets safely:
+
+```bash
+# Validate AIEF path references
+npx --yes @tongsh6/aief-init@latest validate refs
+
+# Validate and auto-fix deterministic cases
+npx --yes @tongsh6/aief-init@latest validate refs --fix
+
+# Migrate AIEF assets into a base directory (preview)
+npx --yes @tongsh6/aief-init@latest migrate --to-base-dir AIEF --dry-run
+
+# Execute migration + auto-fix + verify
+npx --yes @tongsh6/aief-init@latest migrate --to-base-dir AIEF
+```
+
+Common flags:
+- `--dry-run`: preview changes without writing
+- `--force`: overwrite existing files (useful when upgrading to `L2`/`L3`)
+- `--base-dir <path>`: generate assets under a single directory
+- `--root-agents`: also write `AGENTS.md` in repo root when `--base-dir` is set
 
 ### Before / After
 

@@ -116,16 +116,14 @@ context/experience/lessons/auth-password-reset.md
 ## 快速命令
 
 ```bash
-# [根据项目填写常用命令]
-
 # 构建
-[build command]
+node scripts/aief.mjs verify
 
 # 测试
-[test command]
+node --test packages/aief-init/test/cli.test.mjs
 
 # 运行
-[run command]
+node packages/ai-engineering-framework-init/bin/aief-init.mjs --help
 ```
 
 ---
@@ -148,7 +146,7 @@ context/experience/lessons/auth-password-reset.md
 - 破坏性变更
 - 架构调整
 
-参阅 [openspec/AGENTS.md](openspec/AGENTS.md) 或 [workflow/phases/proposal.md](workflow/phases/proposal.md)。
+如仓库启用了 OpenSpec，再参阅 `openspec/AGENTS.md`；否则按 [workflow/phases/proposal.md](workflow/phases/proposal.md) 执行。
 
 ---
 

@@ -11,7 +11,7 @@ context/
 │   ├── domain-model.md    # 领域模型
 │   └── glossary.md        # 术语表
 ├── tech/              # 技术知识
-│   ├── architecture.md    # 架构设计
+│   ├── architecture/      # 架构设计
 │   ├── api/               # API 文档
 │   └── conventions/       # 开发规范
 └── experience/        # 经验知识
@@ -31,7 +31,7 @@ context/
 
 | 文档 | 内容 | 适用场景 |
 |------|------|---------|
-| `architecture.md` | 系统架构、模块边界、技术选型 | 技术决策、模块设计 |
+| `architecture/README.md` | 系统架构、模块边界、技术选型 | 技术决策、模块设计 |
 | `api/` | API 文档、接口规范 | API 开发、集成 |
 | `conventions/backend.md` | 后端开发规范 | 编写后端代码 |
 | `conventions/frontend.md` | 前端开发规范 | 编写前端代码 |

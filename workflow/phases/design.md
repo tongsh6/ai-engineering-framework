@@ -30,7 +30,7 @@
 
 ```
 加载内容：
-- context/tech/architecture.md
+- context/tech/architecture/README.md
 - context/tech/conventions/[相关规范]
 - context/experience/INDEX.md（检索相关经验）
 ```
