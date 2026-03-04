@@ -525,7 +525,7 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1') {
-    throw new Error(`Unsupported level: ${level}`)
+    throw new Error(`Unsupported level: ${level}. The retrofit command supports L0, L0+, and L1. Use --level L1 for the highest supported level.`)
   }
 
   const snapshotPath = repoPath(base, 'context/tech/REPO_SNAPSHOT.md')
