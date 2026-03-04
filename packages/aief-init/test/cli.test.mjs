@@ -32,6 +32,7 @@ test('--help prints usage and exits 0', () => {
   assert.equal(r.status, 0)
   assert.match(r.stdout, /aief-init/)
   assert.match(r.stdout, /retrofit/)
+  assert.match(r.stdout, /doctor/)
   assert.match(r.stdout, /validate refs/)
   assert.match(r.stdout, /migrate/)
 })
@@ -162,6 +163,35 @@ test('retrofit invalid level exits non-zero', () => {
     const r = run(['retrofit', '--level', 'L99', '--locale', 'en'], { cwd: dir })
     assert.notEqual(r.status, 0)
     assert.match(r.stderr, /L99/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor on empty directory exits non-zero with actionable hints', () => {
+  const dir = makeTmp()
+  try {
+    const r = run(['doctor'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
+    assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
+    assert.match(r.stdout, /hint:/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor after L0 retrofit exits 0 and warns about missing scripts/aief.mjs', () => {
+  const dir = makeTmp()
+  try {
+    const r1 = run(['retrofit', '--level', 'L0', '--locale', 'en'], { cwd: dir })
+    assert.equal(r1.status, 0, `stderr: ${r1.stderr}`)
+
+    const r2 = run(['doctor'], { cwd: dir })
+    assert.equal(r2.status, 0, `stdout: ${r2.stdout}\nstderr: ${r2.stderr}`)
+    assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
+    assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)
+    assert.match(r2.stdout, /\[WARN\] scripts\/aief\.mjs available/)
   } finally {
     cleanup(dir)
   }

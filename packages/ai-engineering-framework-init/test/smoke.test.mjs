@@ -30,6 +30,7 @@ test('canonical CLI --help prints usage and exits 0', () => {
   assert.equal(r.status, 0)
   assert.match(r.stdout, /aief-init/)
   assert.match(r.stdout, /retrofit/)
+  assert.match(r.stdout, /doctor/)
 })
 
 test('canonical CLI new --dry-run writes nothing', () => {
@@ -49,6 +50,18 @@ test('canonical CLI validate refs without scripts exits non-zero', () => {
     const r = run(['validate', 'refs'], { cwd: dir })
     assert.notEqual(r.status, 0)
     assert.match(r.stderr, /scripts\/aief\.mjs not found/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('canonical CLI doctor reports missing entry files on empty directory', () => {
+  const dir = makeTmp()
+  try {
+    const r = run(['doctor'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
+    assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
   } finally {
     cleanup(dir)
   }

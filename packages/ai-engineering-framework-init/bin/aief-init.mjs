@@ -27,6 +27,7 @@ function printHelp() {
       '  aief-init new',
       '  aief-init retrofit --level L0',
       '  aief-init retrofit --level L0+',
+      '  aief-init doctor [--base-dir <path>]',
       '  aief-init validate refs [--fix] [--base-dir <path>]',
       '  aief-init migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]',
       '',
@@ -120,6 +121,95 @@ function exists(p) {
     return true
   } catch {
     return false
+  }
+}
+
+function isFile(p) {
+  try {
+    return fs.statSync(p).isFile()
+  } catch {
+    return false
+  }
+}
+
+function runDoctor({ baseDir }) {
+  const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
+  const agentsPath = path.join(projectRoot, 'AGENTS.md')
+  const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
+  const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
+
+  const checks = []
+
+  checks.push({
+    id: 'entry-agents',
+    label: 'AGENTS.md entry file',
+    level: isFile(agentsPath) ? 'pass' : 'fail',
+    blocking: true,
+    hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold entry files.',
+  })
+
+  checks.push({
+    id: 'entry-context-index',
+    label: 'context/INDEX.md entry file',
+    level: isFile(contextIndexPath) ? 'pass' : 'fail',
+    blocking: true,
+    hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold context index.',
+  })
+
+  if (!isFile(scriptPath)) {
+    checks.push({
+      id: 'script-aief',
+      label: 'scripts/aief.mjs available',
+      level: 'warn',
+      blocking: false,
+      hint: 'Run `aief-init retrofit --level L1` to enable `validate`/`migrate` delegation.',
+    })
+  } else {
+    const result = spawnSync(process.execPath, [scriptPath, 'validate', 'refs'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+    })
+
+    const validateOk = result.status === 0
+    checks.push({
+      id: 'refs-validate',
+      label: 'reference consistency (validate refs)',
+      level: validateOk ? 'pass' : 'fail',
+      blocking: true,
+      hint: validateOk
+        ? ''
+        : 'Run `aief-init validate refs --fix` to auto-fix deterministic reference issues.',
+      detail: validateOk ? '' : (result.stderr || result.stdout || '').trim().split('\n')[0],
+    })
+  }
+
+  process.stdout.write(`Doctor report for ${projectRoot}\n`)
+
+  let passCount = 0
+  let warnCount = 0
+  let failCount = 0
+  let blockingFails = 0
+
+  for (const item of checks) {
+    const tag =
+      item.level === 'pass' ? '[PASS]' : item.level === 'warn' ? '[WARN]' : '[FAIL]'
+    process.stdout.write(`${tag} ${item.label}\n`)
+    if (item.detail) process.stdout.write(`       ${item.detail}\n`)
+    if (item.hint && item.level !== 'pass') process.stdout.write(`       hint: ${item.hint}\n`)
+
+    if (item.level === 'pass') passCount += 1
+    else if (item.level === 'warn') warnCount += 1
+    else failCount += 1
+
+    if (item.level === 'fail' && item.blocking) blockingFails += 1
+  }
+
+  process.stdout.write(
+    `Summary: pass=${passCount}, warn=${warnCount}, fail=${failCount}, blockingFail=${blockingFails}\n`
+  )
+
+  if (blockingFails > 0) {
+    process.exit(1)
   }
 }
 
@@ -1067,6 +1157,11 @@ function main() {
       return
     }
 
+    if (opts.command === 'doctor') {
+      runDoctor({ baseDir })
+      return
+    }
+
     throw new Error(`Unknown command: ${opts.command}`)
   } catch (err) {
     const msg = err && err.message ? err.message : String(err)
@@ -1076,4 +1171,3 @@ function main() {
 }
 
 main()
-

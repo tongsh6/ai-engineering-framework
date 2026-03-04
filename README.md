@@ -150,6 +150,9 @@ By default, root-level `AGENTS.md` is not touched when `--base-dir` is provided.
 Use these commands after initialization/retrofit to keep paths consistent and migrate assets safely:
 
 ```bash
+# Diagnose AIEF project health (entry files + refs + script availability)
+npx --yes @tongsh6/aief-init@latest doctor
+
 # Validate AIEF path references
 npx --yes @tongsh6/aief-init@latest validate refs
 
