@@ -49,6 +49,9 @@ Level cheat sheet for retrofit:
 
 - `L0`: minimum entry files only
 - `L0+`: `L0` plus an auto-generated repo snapshot (recommended for existing projects)
+- `L1`: `L0+` plus scaffold skeleton docs (business, tech, workflow, standards stubs)
+- `L2`: `L1` plus full Skill/Command/Agent standards and experience management structure
+- `L3`: `L2` plus cross-cutting patterns (phase router, experience mgmt, context loading) and `.ai-adapters/README.md`
 ### Option A: New Project
 
 ```bash
