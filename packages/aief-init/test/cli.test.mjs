@@ -204,6 +204,21 @@ test('doctor on empty directory exits non-zero with actionable hints', () => {
   }
 })
 
+test('doctor --json returns structured report on empty directory', () => {
+  const dir = makeTmp()
+  try {
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    const payload = JSON.parse(r.stdout)
+    assert.equal(typeof payload.projectRoot, 'string')
+    assert.equal(payload.summary.fail, 2)
+    assert.equal(payload.summary.warn, 1)
+    assert.equal(payload.summary.blockingFail, 2)
+  } finally {
+    cleanup(dir)
+  }
+})
+
 test('doctor after L0 retrofit exits 0 and warns about missing scripts/aief.mjs', () => {
   const dir = makeTmp()
   try {
@@ -211,6 +226,22 @@ test('doctor after L0 retrofit exits 0 and warns about missing scripts/aief.mjs'
     assert.equal(r1.status, 0, `stderr: ${r1.stderr}`)
 
     const r2 = run(['doctor'], { cwd: dir })
+    assert.equal(r2.status, 0, `stdout: ${r2.stdout}\nstderr: ${r2.stderr}`)
+    assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
+    assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)
+    assert.match(r2.stdout, /\[WARN\] scripts\/aief\.mjs available/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor --base-dir checks scoped AIEF directory', () => {
+  const dir = makeTmp()
+  try {
+    const r1 = run(['retrofit', '--level', 'L0', '--base-dir', 'AIEF', '--locale', 'en'], { cwd: dir })
+    assert.equal(r1.status, 0, `stderr: ${r1.stderr}`)
+
+    const r2 = run(['doctor', '--base-dir', 'AIEF'], { cwd: dir })
     assert.equal(r2.status, 0, `stdout: ${r2.stdout}\nstderr: ${r2.stderr}`)
     assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
     assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)

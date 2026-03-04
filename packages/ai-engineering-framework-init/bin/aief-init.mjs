@@ -38,6 +38,7 @@ function printHelp() {
       '  --to-base-dir <path>  Migration target base directory (for migrate)',
       '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
       '  --no-root-agents     Skip writing AGENTS.md at repo root',
+      '  --json               Print doctor result as JSON (for doctor)',
       '  --fix                Auto-fix deterministic reference issues (for validate refs)',
       '  --force              Overwrite existing files',
       '  --dry-run            Print actions without writing',
@@ -64,6 +65,7 @@ function parseArgs(argv) {
     force: false,
     dryRun: false,
     fix: false,
+    json: false,
     toBaseDir: undefined,
   }
 
@@ -82,6 +84,7 @@ function parseArgs(argv) {
     const a = args[i]
     if (a === '--force') opts.force = true
     else if (a === '--dry-run') opts.dryRun = true
+    else if (a === '--json') opts.json = true
     else if (a === '--fix') opts.fix = true
     else if (a === '--level') {
       const v = args[i + 1]
@@ -132,7 +135,7 @@ function isFile(p) {
   }
 }
 
-function runDoctor({ baseDir }) {
+function runDoctor({ baseDir, json }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
   const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
@@ -183,20 +186,12 @@ function runDoctor({ baseDir }) {
     })
   }
 
-  process.stdout.write(`Doctor report for ${projectRoot}\n`)
-
   let passCount = 0
   let warnCount = 0
   let failCount = 0
   let blockingFails = 0
 
   for (const item of checks) {
-    const tag =
-      item.level === 'pass' ? '[PASS]' : item.level === 'warn' ? '[WARN]' : '[FAIL]'
-    process.stdout.write(`${tag} ${item.label}\n`)
-    if (item.detail) process.stdout.write(`       ${item.detail}\n`)
-    if (item.hint && item.level !== 'pass') process.stdout.write(`       hint: ${item.hint}\n`)
-
     if (item.level === 'pass') passCount += 1
     else if (item.level === 'warn') warnCount += 1
     else failCount += 1
@@ -204,9 +199,37 @@ function runDoctor({ baseDir }) {
     if (item.level === 'fail' && item.blocking) blockingFails += 1
   }
 
-  process.stdout.write(
-    `Summary: pass=${passCount}, warn=${warnCount}, fail=${failCount}, blockingFail=${blockingFails}\n`
-  )
+  if (json) {
+    process.stdout.write(
+      `${JSON.stringify(
+        {
+          projectRoot,
+          checks,
+          summary: {
+            pass: passCount,
+            warn: warnCount,
+            fail: failCount,
+            blockingFail: blockingFails,
+          },
+        },
+        null,
+        2
+      )}\n`
+    )
+  } else {
+    process.stdout.write(`Doctor report for ${projectRoot}\n`)
+    for (const item of checks) {
+      const tag =
+        item.level === 'pass' ? '[PASS]' : item.level === 'warn' ? '[WARN]' : '[FAIL]'
+      process.stdout.write(`${tag} ${item.label}\n`)
+      if (item.detail) process.stdout.write(`       ${item.detail}\n`)
+      if (item.hint && item.level !== 'pass') process.stdout.write(`       hint: ${item.hint}\n`)
+    }
+
+    process.stdout.write(
+      `Summary: pass=${passCount}, warn=${warnCount}, fail=${failCount}, blockingFail=${blockingFails}\n`
+    )
+  }
 
   if (blockingFails > 0) {
     process.exit(1)
@@ -1158,7 +1181,7 @@ function main() {
     }
 
     if (opts.command === 'doctor') {
-      runDoctor({ baseDir })
+      runDoctor({ baseDir, json: opts.json })
       return
     }
 
