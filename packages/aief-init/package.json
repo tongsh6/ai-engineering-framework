@@ -7,6 +7,9 @@
   "bin": {
     "aief-init": "bin/aief-init.mjs"
   },
+  "scripts": {
+    "test": "node --test test/cli.test.mjs"
+  },
   "publishConfig": {
     "access": "public"
   },
