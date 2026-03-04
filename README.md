@@ -430,6 +430,7 @@ Build, runtime, and git history remain unaffected.
 - `v1.7.0` - add `validate refs` and `migrate` subcommands
 - `v1.8.0` - make `@tongsh6/aief-init` a thin wrapper delegating to canonical package
 - `v1.8.1` - documentation consistency pass + release/test workflow hardening
+- `v1.9.0` - add `doctor` command for AIEF project health diagnostics
 
 ## Release Verification
 
@@ -437,7 +438,7 @@ Build, runtime, and git history remain unaffected.
 - Automated verifier:
 
 ```bash
-node scripts/post-release-check.mjs 1.8.1
+node scripts/post-release-check.mjs <version>
 ```
 
 ## Roadmap

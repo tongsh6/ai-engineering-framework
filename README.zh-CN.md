@@ -429,6 +429,7 @@ AIEF 是旁路式规范，不会侵入你的业务代码结构。
 - `v1.7.0` - 新增 `validate refs` 与 `migrate` 子命令
 - `v1.8.0` - `@tongsh6/aief-init` 调整为委托 canonical 包的薄包装
 - `v1.8.1` - 文档一致性修复 + 发布/测试流程加固
+- `v1.9.0` - 新增 `doctor` 项目健康诊断命令
 
 ## 发布后校验
 
@@ -436,7 +437,7 @@ AIEF 是旁路式规范，不会侵入你的业务代码结构。
 - 自动校验脚本：
 
 ```bash
-node scripts/post-release-check.mjs 1.8.1
+node scripts/post-release-check.mjs <version>
 ```
 
 ## 规划
