@@ -150,6 +150,9 @@ npx --yes @tongsh6/aief-init@latest retrofit --level L1 --base-dir AIEF
 初始化/迁移后，建议用以下命令维护引用一致性并执行资产迁移：
 
 ```bash
+# 项目健康诊断（入口文件 + 引用一致性 + 脚本可用性）
+npx --yes @tongsh6/aief-init@latest doctor
+
 # 校验 AIEF 路径引用
 npx --yes @tongsh6/aief-init@latest validate refs
 

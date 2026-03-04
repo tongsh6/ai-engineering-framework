@@ -30,6 +30,7 @@ Base directory option:
 
 Additional commands:
 
+    npx --yes @tongsh6/aief-init@latest doctor [--base-dir AIEF]
     npx --yes @tongsh6/aief-init@latest validate refs [--fix]
     npx --yes @tongsh6/aief-init@latest migrate --to-base-dir AIEF [--dry-run]
 

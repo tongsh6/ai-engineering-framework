@@ -36,6 +36,7 @@ Subcommands:
 
     new [--locale zh-CN|en] [--base-dir <path>] [--dry-run] [--force]
     retrofit --level L0|L0+|L1|L2|L3 [--locale zh-CN|en] [--base-dir <path>] [--dry-run] [--force] [--root-agents]
+    doctor [--base-dir <path>]
     validate refs [--fix] [--base-dir <path>]
     migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]
 
