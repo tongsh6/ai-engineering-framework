@@ -153,6 +153,9 @@ Use these commands after initialization/retrofit to keep paths consistent and mi
 # Diagnose AIEF project health (entry files + refs + script availability)
 npx --yes @tongsh6/aief-init@latest doctor
 
+# Machine-readable report for CI/scripts
+npx --yes @tongsh6/aief-init@latest doctor --json
+
 # Validate AIEF path references
 npx --yes @tongsh6/aief-init@latest validate refs
 
@@ -171,6 +174,17 @@ Common flags:
 - `--force`: overwrite existing files (useful when upgrading to `L2`/`L3`)
 - `--base-dir <path>`: generate assets under a single directory
 - `--root-agents`: also write `AGENTS.md` in repo root when `--base-dir` is set
+
+Doctor output example:
+
+```text
+Doctor report for /path/to/project
+[PASS] AGENTS.md entry file
+[PASS] context/INDEX.md entry file
+[WARN] scripts/aief.mjs available
+       hint: Run `aief-init retrofit --level L1` to enable `validate`/`migrate` delegation.
+Summary: pass=2, warn=1, fail=0, blockingFail=0
+```
 
 ### Before / After
 
