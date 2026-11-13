@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CLI = path.join(__dirname, '..', 'bin', 'aief-init.mjs')
 const PROFILE_SCHEMA = path.resolve(__dirname, '../../../docs/standards/schemas/project-profile.schema.json')
+const PACKAGED_PROFILE_SCHEMA = path.resolve(__dirname, '../schemas/project-profile.schema.json')
 
 function run(args, opts = {}) {
   return spawnSync(process.execPath, [CLI, ...args], {
@@ -85,6 +86,7 @@ test('canonical project profile schema is valid JSON and declares strict contrac
   assert.equal(schema.properties.kind.const, 'ProjectProfile')
   assert.equal(schema.additionalProperties, false)
   assert.ok(schema.$defs.lifecycle.properties.stage.enum.includes('mvp_development'))
+  assert.equal(fs.readFileSync(PACKAGED_PROFILE_SCHEMA, 'utf8'), fs.readFileSync(PROFILE_SCHEMA, 'utf8'))
 })
 
 test('canonical CLI validate refs without scripts exits non-zero', () => {
@@ -120,9 +122,51 @@ test('canonical CLI doctor recognizes profile and warns about unknown facts', ()
     assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
     const payload = JSON.parse(r.stdout)
     assert.ok(payload.checks.some((item) => item.id === 'entry-project-profile' && item.level === 'pass'))
-    assert.ok(payload.checks.some((item) => item.id === 'project-profile-protocol' && item.level === 'pass'))
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-schema' && item.level === 'pass'))
     assert.ok(payload.checks.some((item) => item.id === 'project-profile-unknowns' && item.level === 'warn'))
-    assert.ok(payload.checks.some((item) => item.id === 'project-profile-provenance' && item.level === 'warn'))
+    assert.ok(payload.checks.some((item) => item.id === 'profile-human-fact-unconfirmed' && item.level === 'warn'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+
+test('doctor rejects project profiles that violate the JSON Schema', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    fs.appendFileSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml'), '\\ninvalidExtra: true\\n')
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-schema' && item.level === 'fail'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor rejects confirmed human facts with an AI-only evidence source', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    const profilePath = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
+    let profile = fs.readFileSync(profilePath, 'utf8')
+    profile = profile.replace('ownership: unknown', 'ownership: personal')
+    profile = profile.replace('  provenance: {}', [
+      '  provenance:',
+      '    /project/identity/ownership:',
+      '      status: confirmed',
+      '      source:',
+      '        type: repository_evidence',
+      '        reference: README.md',
+    ].join('\\n'))
+    fs.writeFileSync(profilePath, profile)
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'profile-human-fact-invalid-source' && item.level === 'fail'))
   } finally {
     cleanup(dir)
   }
