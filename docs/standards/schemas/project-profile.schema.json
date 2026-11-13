@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aief.dev/schemas/project-profile/v1/project-profile.schema.json",
+  "title": "AIEF Project Profile",
+  "description": "Portable project identity, lifecycle, commitments, and governance facts consumed by AI coding agents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "project", "governance"],
+  "properties": {
+    "apiVersion": { "const": "aief.dev/project-profile/v1" },
+    "kind": { "const": "ProjectProfile" },
+    "metadata": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "schemaVersion"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "schemaVersion": { "const": "1.0" }
+      }
+    },
+    "project": { "$ref": "#/$defs/project" },
+    "governance": { "$ref": "#/$defs/governance" }
+  },
+  "$defs": {
+    "project": {
+      "type": "object", "additionalProperties": false,
+      "required": ["identity", "lifecycle", "release", "commitments", "constraints"],
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" },
+        "release": { "$ref": "#/$defs/release" },
+        "commitments": { "$ref": "#/$defs/commitments" },
+        "constraints": { "type": "array", "items": { "$ref": "#/$defs/constraint" } },
+        "currentFocus": { "$ref": "#/$defs/currentFocus" }
+      }
+    },
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "description", "ownership", "purposes", "productForms", "audiences", "horizon"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "ownership": { "enum": ["personal", "team", "organization", "community", "client_owned", "joint", "unknown"] },
+        "purposes": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "enum": ["learning", "research", "technical_validation", "personal_tool", "internal_product", "open_source", "commercial_product", "client_delivery", "unknown"] }
+        },
+        "productForms": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "enum": ["cli", "library", "sdk", "plugin", "desktop_app", "web_app", "mobile_app", "service", "platform", "script", "other", "unknown"] }
+        },
+        "audiences": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "enum": ["personal", "internal", "invited", "public", "paying", "developers", "other", "unknown"] }
+        },
+        "horizon": { "enum": ["disposable", "short_term", "long_term", "unknown"] }
+      }
+    },
+    "lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stage", "operatingMode"],
+      "properties": {
+        "stage": { "enum": ["discovery", "poc", "mvp_development", "pre_release", "validation", "production", "maintenance", "sunset", "unknown"] },
+        "operatingMode": { "enum": ["normal_development", "feature_development", "system_refactoring", "migration", "release_preparation", "incident_response", "maintenance", "sunset_preparation", "unknown"] }
+      }
+    },
+    "release": {
+      "type": "object", "additionalProperties": false,
+      "required": ["everReleased", "channel"],
+      "properties": {
+        "everReleased": { "type": ["boolean", "null"] },
+        "channel": { "enum": ["none", "internal", "private_beta", "public_beta", "stable", "unknown"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "everReleased": { "const": false } }, "required": ["everReleased"] },
+          "then": { "properties": { "channel": { "const": "none" } } }
+        },
+        {
+          "if": { "properties": { "everReleased": { "const": true } }, "required": ["everReleased"] },
+          "then": { "properties": { "channel": { "not": { "const": "none" } } } }
+        }
+      ]
+    },
+    "commitments": {
+      "type": "object", "additionalProperties": false,
+      "required": ["users", "deployment", "data", "compatibility", "maintenance"],
+      "properties": {
+        "users": {
+          "type": "object", "additionalProperties": false, "required": ["scope", "support"],
+          "properties": {
+            "scope": { "enum": ["personal", "internal", "invited", "public", "paying", "unknown"] },
+            "support": { "enum": ["none", "best_effort", "defined", "sla", "unknown"] }
+          }
+        },
+        "deployment": {
+          "type": "object", "additionalProperties": false, "required": ["scope"],
+          "properties": {
+            "scope": { "enum": ["local_only", "private_network", "public_cloud", "hybrid", "distributed", "unknown"] }
+          }
+        },
+        "data": {
+          "type": "object", "additionalProperties": false, "required": ["classification", "retention", "recovery"],
+          "properties": {
+            "classification": { "enum": ["disposable_test", "personal_real_data", "user_content", "business_confidential", "regulated_sensitive", "mixed", "unknown"] },
+            "retention": { "enum": ["disposable", "bounded", "preserve", "unknown"] },
+            "recovery": { "enum": ["none", "backup_required", "restore_required", "backup_and_restore_required", "unknown"] }
+          }
+        },
+        "compatibility": {
+          "type": "object", "additionalProperties": false,
+          "required": ["publicApi", "internalApi", "databaseSchema", "userData"],
+          "properties": {
+            "publicApi": { "enum": ["none", "internal_contract", "published_contract", "versioned_contract", "unknown"] },
+            "internalApi": { "enum": ["none", "internal_contract", "unknown"] },
+            "databaseSchema": { "enum": ["disposable", "migration_required", "backward_compatible", "unknown"] },
+            "userData": { "enum": ["disposable", "preserve", "migration_required", "export_required", "unknown"] }
+          }
+        },
+        "maintenance": {
+          "type": "object", "additionalProperties": false, "required": ["commitment"],
+          "properties": {
+            "commitment": { "enum": ["none", "best_effort", "long_term", "formal_support", "sla", "unknown"] }
+          }
+        }
+      }
+    },
+    "constraint": {
+      "type": "object", "additionalProperties": false, "required": ["id", "statement", "scope"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "statement": { "type": "string", "minLength": 1 },
+        "scope": { "enum": ["project_wide", "domain_specific", "release_specific"] }
+      }
+    },
+    "currentFocus": {
+      "type": "object", "additionalProperties": false, "required": ["summary", "source"],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "governance": {
+      "type": "object", "additionalProperties": false, "required": ["provenance", "pendingChanges"],
+      "properties": {
+        "provenance": {
+          "type": "object", "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "$ref": "#/$defs/provenanceEntry" }
+        },
+        "pendingChanges": { "type": "array", "items": { "$ref": "#/$defs/pendingChange" } }
+      }
+    },
+    "provenanceEntry": {
+      "type": "object", "additionalProperties": false, "required": ["status", "source"],
+      "properties": {
+        "status": { "enum": ["confirmed", "proposed", "unknown", "stale"] },
+        "source": { "$ref": "#/$defs/source" },
+        "confirmedAt": { "type": "string", "format": "date" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false, "required": ["type"],
+      "properties": {
+        "type": { "enum": ["maintainer_confirmation", "user_instruction", "current_work_plan", "repository_evidence", "ci_evidence", "manual_document", "unknown"] },
+        "reference": { "type": ["string", "null"] }
+      }
+    },
+    "pendingChange": {
+      "type": "object", "additionalProperties": false,
+      "required": ["target", "proposedValue", "reason", "evidence", "status"],
+      "properties": {
+        "target": { "type": "string", "minLength": 1 },
+        "proposedValue": {},
+        "reason": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "status": { "const": "awaiting_confirmation" }
+      }
+    }
+  }
+}
