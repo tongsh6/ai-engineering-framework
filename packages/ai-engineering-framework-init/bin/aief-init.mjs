@@ -697,7 +697,7 @@ function resolveLocale(input) {
   }
 }
 
-function buildMinimalTemplates(locale, contextEntry) {
+function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PROJECT_PROFILE.yaml', operatingContextSpecEntry = 'docs/standards/patterns/project-operating-context.md') {
   const profile = [
     'apiVersion: aief.dev/project-profile/v1',
     'kind: ProjectProfile',
@@ -743,8 +743,8 @@ function buildMinimalTemplates(locale, contextEntry) {
         '',
         '## Project Operating Context',
         '',
-        'Before engineering decisions, read context/PROJECT_PROFILE.yaml.',
-        'Follow docs/standards/patterns/project-operating-context.md when installed.',
+        `Before engineering decisions, read \`${profileEntry}\`.`,
+        `Follow \`${operatingContextSpecEntry}\` when installed.`,
         'Never interpret unknown as none. Lifecycle provides defaults only; data responsibilities and confirmed external commitments take precedence.',
         'Never change human-confirmed fields autonomously. Task adjustments must be scoped and must not bypass data or security constraints.',
         'The project profile is the single source of truth for project-level facts.',
@@ -760,7 +760,7 @@ function buildMinimalTemplates(locale, contextEntry) {
         '',
         'Context Entry:',
         `- ${contextEntry}`,
-        '- context/PROJECT_PROFILE.yaml',
+        `- ${profileEntry}`,
         '',
       ].join('\n'),
       index: [
@@ -768,7 +768,7 @@ function buildMinimalTemplates(locale, contextEntry) {
         '',
         'This is the navigation entry for long-term project context.',
         '',
-        '- PROJECT_PROFILE.yaml: project identity, lifecycle, and commitments. Read before engineering decisions.',
+        `- [${profileEntry}] project identity, lifecycle, and commitments. Read before engineering decisions.`,
         '',
         'Directories:',
         '',
@@ -790,8 +790,8 @@ function buildMinimalTemplates(locale, contextEntry) {
       '',
       '## Project Operating Context',
       '',
-      '进行工程决策前，必须读取 context/PROJECT_PROFILE.yaml。',
-      '遵循 docs/standards/patterns/project-operating-context.md（若已安装）。',
+      `进行工程决策前，必须读取 \`${profileEntry}\`。`,
+      `遵循 \`${operatingContextSpecEntry}\`（若已安装）。`,
       '不得将 unknown 当作 none；生命周期只提供默认策略，数据责任和已确认外部承诺优先。',
       '不得自行修改人工确认字段；任务级调整必须限定作用域，不能绕过数据和安全约束。',
       '项目画像是项目级事实的唯一来源。',
@@ -800,10 +800,7 @@ function buildMinimalTemplates(locale, contextEntry) {
       '- 交流默认使用中文',
       '- 代码/命令/标识符保持英文',
       '',
-      '项目信息：',
-      '- 项目一句话介绍：',
-      '- 核心价值：',
-      '',
+
       '常用命令：',
       '- build:',
       '- test:',
@@ -811,7 +808,7 @@ function buildMinimalTemplates(locale, contextEntry) {
       '',
       '上下文入口：',
       `- ${contextEntry}`,
-      '- context/PROJECT_PROFILE.yaml',
+      `- ${profileEntry}`,
       '',
     ].join('\n'),
     index: [
@@ -819,7 +816,7 @@ function buildMinimalTemplates(locale, contextEntry) {
       '',
       '这是项目长期上下文的导航入口。',
       '',
-      '- PROJECT_PROFILE.yaml：项目身份、生命周期和责任约束；工程决策前必须读取。',
+      `- [${profileEntry}]：项目身份、生命周期和责任约束；工程决策前必须读取。`,
       '',
       '目录结构：',
       '',
@@ -1291,9 +1288,11 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents, preserve
   const base = normalizeBaseDir(baseDir)
   const shouldWriteRootAgents = typeof writeRootAgents === 'boolean' ? writeRootAgents : !base
   const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
+  const rootProfileEntry = scopedRelPath(base, 'context/PROJECT_PROFILE.yaml')
+  const rootSpecEntry = scopedRelPath(base, 'docs/standards/patterns/project-operating-context.md')
   const baseContextEntry = 'context/INDEX.md'
-  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry)
   const baseTemplates = buildMinimalTemplates(locale, baseContextEntry)
+  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry, rootProfileEntry, rootSpecEntry)
   const bKeep = templatePath('templates/minimal/context/business/.gitkeep')
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
