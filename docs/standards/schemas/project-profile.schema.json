@@ -59,7 +59,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["stage", "operatingMode"],
       "properties": {
-        "stage": { "enum": ["discovery", "poc", "mvp_development", "pre_release", "validation", "production", "maintenance", "sunset", "unknown"] },
+        "stage": { "enum": ["discovery", "poc", "development", "mvp_development", "pre_release", "validation", "production", "maintenance", "sunset", "unknown"] },
         "operatingMode": { "enum": ["normal_development", "feature_development", "system_refactoring", "migration", "release_preparation", "incident_response", "maintenance", "sunset_preparation", "unknown"] }
       }
     },

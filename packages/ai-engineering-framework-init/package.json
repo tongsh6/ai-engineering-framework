@@ -8,7 +8,7 @@
     "aief-init": "bin/aief-init.mjs"
   },
   "scripts": {
-    "test": "node --test test/smoke.test.mjs"
+    "test": "node --test test/smoke.test.mjs test/lifecycle.test.mjs"
   },
   "publishConfig": {
     "access": "public"
