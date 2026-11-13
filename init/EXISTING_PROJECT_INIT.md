@@ -1,48 +1,43 @@
 # Existing Project Init (Retrofit)
 
 目标：
-- 不动现有代码结构
+- 不动现有业务代码结构
 - 不要求一次性补齐文档
 - 先插入口，再逐步演进
+- 不覆盖已有项目事实和人工确认的画像字段
 
-铁律：
-1. 不修改现有代码结构
-2. 不要求一次性补齐文档
-3. 先插入口，再逐步演进
+基础接入（L0）应生成：
 
-推荐最小可用（L0+）应生成：
+    AGENTS.md
+    context/INDEX.md
+    context/PROJECT_PROFILE.yaml
 
-    context/tech/REPO_SNAPSHOT.md
-
-这是 L0+ 的关键价值：提供一份可修改的初稿，避免从空白开始。
+PROJECT_PROFILE.yaml 是项目身份、生命周期、发布状态和责任约束的统一事实入口。若项目已有等价的权威资料，先审计并决定唯一真源；不得静默创建互相冲突的第二份画像。
 
 推荐迁移路径：
 
-L0（5 分钟）：
-- 新增 AGENTS.md（可空，但要存在）
-- 新增 context/INDEX.md（可空，但要存在）
+L0：
+- 新增或补齐 AGENTS.md
+- 新增或补齐 context/INDEX.md
+- 创建 Profile 候选模板，未知事实使用 unknown
 
-L0+（再 5 分钟）：
-- 生成 context/tech/REPO_SNAPSHOT.md（用 templates/retrofit/ 初稿）
+L0+：
+- 在 L0 基础上生成 context/tech/REPO_SNAPSHOT.md
 
-可选：用脚本一键生成（仅写入 AIEF 文件，不触碰业务代码）：
-- node scripts/aief-init.mjs retrofit --level L0
-- node scripts/aief-init.mjs retrofit --level L0+
+L1：
+- 补充核心业务说明
+- 补充技术与架构说明
 
-可选：无拷贝前置的一键运行（推荐用于推广/接入）：
-- npx --yes @tongsh6/aief-init@latest retrofit --level L0
-- npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+L2/L3：
+- 按需引入 workflow、经验、标准和跨切面模式
 
-L1（按需，通常 1-2 小时内可完成）：
-- context/business/ 一页业务说明
-- context/tech/ 一页技术与架构说明
-
-L2/L3（按需增强）：
-- L2：补齐 workflow、经验模板和 Skill/Command/Agent 规范
-- L3：引入跨切面模式并持续沉淀经验
-- 详见：`init/MIGRATION_LEVELS.md`
+Retrofit 约束：
+- 不覆盖已有 Profile。
+- 不覆盖已有 AGENTS.md 或业务文档。
+- AI 可扫描仓库形成技术事实候选，但不得自动确认项目性质、生命周期、发布承诺和数据责任。
+- 对已有资料与仓库证据的冲突，报告差异并等待维护者确认。
 
 完成标准：
-- 人能在 1 分钟内找到入口（AGENTS.md）
-- L0：AI 能在 1 分钟内定位上下文入口（context/INDEX.md）
-- L0+：AI 能在 1 分钟内读到仓库快照（context/tech/REPO_SNAPSHOT.md）
+- AI 能通过 AGENTS.md 定位项目画像
+- 项目画像明确区分 confirmed、unknown 和 proposed
+- 现有项目资产未被破坏
