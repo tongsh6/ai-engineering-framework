@@ -15,13 +15,13 @@ Project Operating Context（POC）为 AI 提供项目级事实和决策约束。
 
 ## 2. 唯一事实来源
 
-项目级画像唯一事实源为 \`context/PROJECT_PROFILE.yaml\`。
+项目级画像唯一事实源为 `context/PROJECT_PROFILE.yaml`。
 
-- \`AGENTS.md\` 只定义入口与消费规则，不复制画像字段。
-- \`context/INDEX.md\` 负责导航，不复制画像内容。
-- \`context/tech/REPO_SNAPSHOT.md\` 描述仓库可观察的技术现状，不替代项目画像。
+- `AGENTS.md` 只定义入口与消费规则，不复制画像字段。
+- `context/INDEX.md` 负责导航，不复制画像内容。
+- `context/tech/REPO_SNAPSHOT.md` 描述仓库可观察的技术现状，不替代项目画像。
 - 任务计划和任务文件继续管理当前任务进度。
-- aief-pm 的 \`PROFILE.json\` 是上下文编译配置，不是本协议的项目画像。
+- aief-pm 的 `PROFILE.json` 是上下文编译配置，不是本协议的项目画像。
 
 如果项目已有等价的权威资料，接入时先审计并明确唯一真源；禁止静默建立第二份互相竞争的项目画像。
 
@@ -34,28 +34,28 @@ Project Operating Context（POC）为 AI 提供项目级事实和决策约束。
 - Workflow Phase：当前任务阶段（proposal、design、implement、review 等）。
 
 生命周期字段：
-- \`project.lifecycle.stage\`：discovery、poc、mvp_development、pre_release、validation、production、maintenance、sunset、unknown。
-- \`project.lifecycle.operatingMode\`：normal_development、feature_development、system_refactoring、migration、release_preparation、incident_response、maintenance、sunset_preparation、unknown。
+- `project.lifecycle.stage`：discovery、poc、mvp_development、pre_release、validation、production、maintenance、sunset、unknown。
+- `project.lifecycle.operatingMode`：normal_development、feature_development、system_refactoring、migration、release_preparation、incident_response、maintenance、sunset_preparation、unknown。
 
 发布事实独立记录：
-- \`project.release.everReleased\`：true / false / null（未知）。
-- \`project.release.channel\`：none、internal、private_beta、public_beta、stable、unknown。
+- `project.release.everReleased`：true / false / null（未知）。
+- `project.release.channel`：none、internal、private_beta、public_beta、stable、unknown。
 - false 必须对应 none；true 不得对应 none；null 表示历史发布事实未知，不允许推断为从未发布。
 
 生命周期不是单向状态机。项目可因重构、迁移、维护或业务变化改变工作模式；重大生命周期和发布状态变更须人工确认。
 
 ## 4. Profile 契约
 
-Schema：\`docs/standards/schemas/project-profile.schema.json\`。
+Schema：`docs/standards/schemas/project-profile.schema.json`。
 
-实例：\`context/PROJECT_PROFILE.yaml\`。
+实例：`context/PROJECT_PROFILE.yaml`。
 
 协议标识：
-- apiVersion：\`aief.dev/project-profile/v1\`
-- kind：\`ProjectProfile\`
-- schemaVersion：\`1.0\`
+- apiVersion：`aief.dev/project-profile/v1`
+- kind：`ProjectProfile`
+- schemaVersion：`1.0`
 
-必填事实缺乏信息时使用显式 \`unknown\`；发布历史未知时 \`everReleased: null\`。禁止把缺失、unknown、none、not_applicable 混为一谈。当前 Schema 不定义 not_applicable；确实不适用的维度应在规范中说明理由，不得伪造 none。
+必填事实缺乏信息时使用显式 `unknown`；发布历史未知时 `everReleased: null`。禁止把缺失、unknown、none、not_applicable 混为一谈。当前 Schema 不定义 not_applicable；确实不适用的维度应在规范中说明理由，不得伪造 none。
 
 Profile 只存项目事实、责任、稳定约束、当前关注点和事实治理元数据。不存任务执行进度、会话摘要、技术栈快照、Harness 模型配置或每次策略推导结果。
 
@@ -66,27 +66,27 @@ Profile 只存项目事实、责任、稳定约束、当前关注点和事实治
 ### 5.1 human_confirmed
 
 必须由维护者确认：
-- \`project.identity.*\`
-- \`project.lifecycle.stage\`
-- \`project.release.*\`
-- \`project.commitments.*\`
-- \`project.constraints\`
+- `project.identity.*`
+- `project.lifecycle.stage`
+- `project.release.*`
+- `project.commitments.*`
+- `project.constraints`
 
 AI 可以收集证据并提出 pending change，但不得直接修改已生效值。
 
 ### 5.2 ai_maintained
 
 AI 可以在有来源证据时更新：
-- \`project.lifecycle.operatingMode\`（必须依据当前已确认工作计划；明显改变工作模式时提示维护者）
-- \`project.currentFocus\`
-- \`governance.provenance\`
-- \`governance.pendingChanges\`
+- `project.lifecycle.operatingMode`（必须依据当前已确认工作计划；明显改变工作模式时提示维护者）
+- `project.currentFocus`
+- `governance.provenance`
+- `governance.pendingChanges`
 
 AI 不得仅凭代码规模、版本号或仓库活跃度推断项目生命周期、发布承诺或用户责任。
 
 ### 5.3 Provenance
 
-每个关键事实应在 \`governance.provenance\` 中按 JSON Pointer 风格字段路径记录来源，例如 \`/project/identity/ownership\`。
+每个关键事实应在 `governance.provenance` 中按 JSON Pointer 风格字段路径记录来源，例如 `/project/identity/ownership`。
 
 状态：
 - confirmed：来源足以支持当前值。
@@ -200,7 +200,7 @@ pre_release 阶段：检查核心闭环、安装/部署、发布说明、数据�
 ## 8. Context Loading 与 Harness
 
 所有 Harness 统一遵循项目根目录 AGENTS.md：
-1. 读取 \`context/PROJECT_PROFILE.yaml\`。
+1. 读取 `context/PROJECT_PROFILE.yaml`。
 2. 读取本规范（若该规范已安装；否则遵循 AGENTS.md 中内嵌的基础规则）。
 3. 读取任务入口和任务文件。
 4. 按任务需要懒加载 business、tech、experience、specification 上下文。
@@ -218,7 +218,7 @@ pre_release 阶段：检查核心闭环、安装/部署、发布说明、数据�
 
 ## 10. 验收场景
 
-行为测试基线见 \`docs/standards/checklists/project-operating-context-acceptance.md\`。Schema 结构测试与策略行为测试分开执行。
+行为测试基线见 `docs/standards/checklists/project-operating-context-acceptance.md`。Schema 结构测试与策略行为测试分开执行。
 
 ## 11. 非目标
 
