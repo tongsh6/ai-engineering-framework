@@ -29,6 +29,7 @@ Quick Commands:
 
 Context Entry:
 - context/INDEX.md
+- context/PROJECT_PROFILE.yaml
 
 Knowledge Base:
 | Directory | Purpose | When to Load |
