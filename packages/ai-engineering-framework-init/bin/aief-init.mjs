@@ -16,11 +16,11 @@ const projectProfileSchema = JSON.parse(fs.readFileSync(PROJECT_PROFILE_SCHEMA_P
 const profileAjv = new Ajv({ allErrors: true, strict: false })
 profileAjv.addFormat('date', {
   type: 'string',
-  validate: (value) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
+  validate: (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
 })
 profileAjv.addFormat('date-time', {
   type: 'string',
-  validate: (value) => /^\\d{4}-\\d{2}-\\d{2}T/.test(value) && !Number.isNaN(Date.parse(value)),
+  validate: (value) => /^\d{4}-\d{2}-\d{2}T/.test(value) && !Number.isNaN(Date.parse(value)),
 })
 const validateProjectProfile = profileAjv.compile(projectProfileSchema)
 
@@ -340,7 +340,7 @@ function runDoctor({ baseDir, json }) {
         checks.push({
           id: 'project-profile-unknowns',
           label: 'project profile contains unresolved values',
-          level: /:\\s*unknown\\b/.test(profileText) || /everReleased:\\s*null/.test(profileText) ? 'warn' : 'pass',
+          level: /:\s*unknown\b/.test(profileText) || /everReleased:\s*null/.test(profileText) ? 'warn' : 'pass',
           blocking: false,
           hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
         })
