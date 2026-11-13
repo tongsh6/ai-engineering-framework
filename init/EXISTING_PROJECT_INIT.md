@@ -27,6 +27,7 @@
 L0（5 分钟）：
 - 新增 AGENTS.md（可空，但要存在）
 - 新增 context/INDEX.md（可空，但要存在）
+- 新增 context/PROJECT_PROFILE.yaml（未知事实使用 unknown）
 
 L0+（再 5 分钟）：
 - 生成 context/tech/REPO_SNAPSHOT.md（用 templates/retrofit/ 初稿）
