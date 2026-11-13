@@ -362,38 +362,6 @@ function runDoctor({ baseDir, json, profilePath }) {
 
   if (isFile(resolvedProfilePath)) {
     const profileText = readText(resolvedProfilePath)
-      agentsText.toLowerCase().includes('project operating context')
-    checks.push({
-      id: 'agents-project-operating-context',
-      label: 'AGENTS.md loads project operating context',
-      level: hasProfileInstruction ? 'pass' : 'warn',
-      blocking: false,
-      hint: hasProfileInstruction ? '' : 'Add the Project Operating Context entry rules to AGENTS.md.',
-    })
-  }
-
-  if (isFile(contextIndexPath)) {
-    const indexText = readText(contextIndexPath)
-    const hasProfileNavigation = indexText.includes('PROJECT_PROFILE.yaml')
-    checks.push({
-      id: 'context-index-project-profile',
-      label: 'context/INDEX.md navigates to project profile',
-      level: hasProfileNavigation ? 'pass' : 'warn',
-      blocking: false,
-      hint: hasProfileNavigation ? '' : 'Add PROJECT_PROFILE.yaml to the context index.',
-    })
-  }
-
-  checks.push({
-    id: 'entry-project-profile',
-    label: `project profile file: ${profilePathLabel}`,
-    level: isFile(resolvedProfilePath) ? 'pass' : 'fail',
-    blocking: true,
-    hint: `Create the Project Profile at ${profilePathLabel} using the AIEF Project Profile schema.`,
-  })
-
-  if (isFile(resolvedProfilePath)) {
-    const profileText = readText(resolvedProfilePath)
     let profile
     try {
       profile = parseYaml(profileText)
