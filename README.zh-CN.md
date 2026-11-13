@@ -66,11 +66,11 @@ npx --yes @tongsh6/aief-init@latest new --locale zh-CN
 
 这会生成 `AGENTS.md`、`context/INDEX.md` 和 `context/PROJECT_PROFILE.yaml`。画像初始值使用显式 `unknown`，需要由维护者确认项目性质、生命周期和责任，不让 AI 猜测。
 
-第 2 步 - 打开生成的 `AGENTS.md` 模板，填写：
+第 2 步 - 补充项目上下文：
 
-1. 项目一句话介绍
-2. 核心约束（如：目录边界、关键规则）
-3. 常用命令（`build` / `test` / `run`）
+1. 在 `context/PROJECT_PROFILE.yaml` 中确认项目身份、生命周期、用户和责任；未知信息保留 `unknown`。
+2. 在 `AGENTS.md` 中填写关键工程约束（如目录边界、关键规则）。
+3. 在 `AGENTS.md` 中补充常用命令（`build` / `test` / `run`）。
 
 允许很粗：短 bullet 就足够完成 L0。
 
