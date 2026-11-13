@@ -30,7 +30,11 @@ Why teams adopt it:
 - Shared project rules across people and tools
 - Incremental adoption (start small, expand when needed)
 
-## Project Operating Context\n\nAIEF also provides a project-level operating profile so AI can distinguish a personal tool, an exploratory PoC, an open-source product, an internal system, and a production service. Lifecycle supplies default engineering policies; confirmed data responsibilities and external commitments take precedence. See [Project Operating Context](docs/standards/patterns/project-operating-context.md).\n\n## The Problem
+## Project Operating Context
+
+AIEF also provides a project-level operating profile so AI can distinguish a personal tool, an exploratory PoC, an open-source product, an internal system, and a production service. Lifecycle supplies default engineering policies; confirmed data responsibilities and external commitments take precedence. See [Project Operating Context](docs/standards/patterns/project-operating-context.md).
+
+## The Problem
 
 Most teams using AI in daily development hit the same issues:
 
