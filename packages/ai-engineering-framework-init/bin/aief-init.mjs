@@ -5,9 +5,128 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import Ajv from 'ajv'
+import { parse as parseYaml } from 'yaml'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+const PROJECT_PROFILE_SCHEMA_PATH = path.resolve(__dirname, '../schemas/project-profile.schema.json')
+const projectProfileSchema = JSON.parse(fs.readFileSync(PROJECT_PROFILE_SCHEMA_PATH, 'utf8'))
+const profileAjv = new Ajv({ allErrors: true, strict: false })
+profileAjv.addFormat('date', {
+  type: 'string',
+  validate: (value) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
+})
+profileAjv.addFormat('date-time', {
+  type: 'string',
+  validate: (value) => /^\\d{4}-\\d{2}-\\d{2}T/.test(value) && !Number.isNaN(Date.parse(value)),
+})
+const validateProjectProfile = profileAjv.compile(projectProfileSchema)
+
+const HUMAN_CONFIRMED_PROFILE_PATHS = [
+  '/project/identity/name',
+  '/project/identity/description',
+  '/project/identity/ownership',
+  '/project/identity/purposes',
+  '/project/identity/productForms',
+  '/project/identity/audiences',
+  '/project/identity/horizon',
+  '/project/lifecycle/stage',
+  '/project/release/everReleased',
+  '/project/release/channel',
+  '/project/commitments/users/scope',
+  '/project/commitments/users/support',
+  '/project/commitments/deployment/scope',
+  '/project/commitments/data/classification',
+  '/project/commitments/data/retention',
+  '/project/commitments/data/recovery',
+  '/project/commitments/compatibility/publicApi',
+  '/project/commitments/compatibility/internalApi',
+  '/project/commitments/compatibility/databaseSchema',
+  '/project/commitments/compatibility/userData',
+  '/project/commitments/maintenance/commitment',
+]
+
+function readJsonPointer(target, pointer) {
+  return pointer.split('/').slice(1).reduce((value, part) => {
+    if (value === null || value === undefined) return undefined
+    return value[part.replace(/~1/g, '/').replace(/~0/g, '~')]
+  }, target)
+}
+
+function inspectProjectProfileSemantics(profile) {
+  const findings = []
+  const provenance = profile.governance?.provenance ?? {}
+  const unresolved = (value) =>
+    value === undefined ||
+    value === null ||
+    value === 'unknown' ||
+    (Array.isArray(value) && (value.length === 0 || value.includes('unknown')))
+
+  for (const pointer of HUMAN_CONFIRMED_PROFILE_PATHS) {
+    const value = readJsonPointer(profile, pointer)
+    if (unresolved(value)) continue
+    const entry = provenance[pointer]
+    if (!entry || entry.status !== 'confirmed') {
+      findings.push({
+        id: 'profile-human-fact-unconfirmed',
+        level: 'warn',
+        message: `Human-confirmed field ${pointer} has no confirmed provenance.`,
+      })
+      continue
+    }
+    if (!['maintainer_confirmation', 'user_instruction'].includes(entry.source?.type)) {
+      findings.push({
+        id: 'profile-human-fact-invalid-source',
+        level: 'error',
+        message: `Human-confirmed field ${pointer} must cite maintainer_confirmation or user_instruction.`,
+      })
+    }
+  }
+
+  for (const pointer of ['/project/lifecycle/operatingMode', '/project/currentFocus']) {
+    const value = readJsonPointer(profile, pointer)
+    if (unresolved(value)) continue
+    const entry = provenance[pointer]
+    if (!entry || entry.status !== 'confirmed' || !entry.source?.reference) {
+      findings.push({
+        id: 'profile-ai-fact-missing-evidence',
+        level: 'warn',
+        message: `AI-maintained field ${pointer} needs confirmed provenance with a source reference.`,
+      })
+    }
+  }
+
+  const constraintIds = (profile.project?.constraints ?? []).map((item) => item.id)
+  if (new Set(constraintIds).size !== constraintIds.length) {
+    findings.push({
+      id: 'profile-duplicate-constraint-id',
+      level: 'error',
+      message: 'Project constraint IDs must be unique.',
+    })
+  }
+
+  const data = profile.project?.commitments?.data
+  const compatibility = profile.project?.commitments?.compatibility
+  const nonDisposableData = ['personal_real_data', 'user_content', 'business_confidential', 'regulated_sensitive', 'mixed']
+  if (nonDisposableData.includes(data?.classification) && data?.retention === 'disposable') {
+    findings.push({
+      id: 'profile-data-retention-conflict',
+      level: 'warn',
+      message: 'Non-disposable data classification conflicts with disposable retention.',
+    })
+  }
+  if (nonDisposableData.includes(data?.classification) && compatibility?.userData === 'disposable') {
+    findings.push({
+      id: 'profile-user-data-compatibility-conflict',
+      level: 'warn',
+      message: 'Non-disposable data classification conflicts with disposable user-data compatibility.',
+    })
+  }
+
+  return findings
+}
 
 const DEFAULT_LOCALE = 'zh-CN'
 const SUPPORTED_LOCALES = new Set(['zh-CN', 'en'])
@@ -195,30 +314,46 @@ function runDoctor({ baseDir, json }) {
 
   if (isFile(projectProfilePath)) {
     const profileText = readText(projectProfilePath)
-    const hasProtocol = profileText.includes('apiVersion: aief.dev/project-profile/v1') &&
-      profileText.includes('kind: ProjectProfile') &&
-      profileText.includes('schemaVersion:')
-    checks.push({
-      id: 'project-profile-protocol',
-      label: 'project profile protocol markers',
-      level: hasProtocol ? 'pass' : 'fail',
-      blocking: true,
-      hint: hasProtocol ? '' : 'Check apiVersion, kind, and metadata.schemaVersion against the AIEF Project Profile contract.',
-    })
-    checks.push({
-      id: 'project-profile-provenance',
-      label: 'project profile provenance metadata',
-      level: /provenance:\s*\{\s*\}/.test(profileText) ? 'warn' : 'pass',
-      blocking: false,
-      hint: 'Record provenance for confirmed project facts using the Project Operating Context specification.',
-    })
-    checks.push({
-      id: 'project-profile-unknowns',
-      label: 'project profile contains unresolved values',
-      level: /:\s*unknown\b/.test(profileText) || /everReleased:\s*null/.test(profileText) ? 'warn' : 'pass',
-      blocking: false,
-      hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
-    })
+    let profile
+    try {
+      profile = parseYaml(profileText)
+      const valid = validateProjectProfile(profile)
+      checks.push({
+        id: 'project-profile-schema',
+        label: 'project profile YAML and JSON Schema',
+        level: valid ? 'pass' : 'fail',
+        blocking: true,
+        hint: valid ? '' : (validateProjectProfile.errors ?? []).slice(0, 5).map((issue) => `${issue.instancePath || '/'} ${issue.message}`).join('; '),
+      })
+
+      if (valid) {
+        const semanticFindings = inspectProjectProfileSemantics(profile)
+        for (const finding of semanticFindings) {
+          checks.push({
+            id: finding.id,
+            label: finding.message,
+            level: finding.level,
+            blocking: finding.level === 'error',
+            hint: finding.level === 'error' ? 'Correct the Profile governance or conflicting facts before relying on this profile.' : 'Review the fact and record its source or resolve the conflict.',
+          })
+        }
+        checks.push({
+          id: 'project-profile-unknowns',
+          label: 'project profile contains unresolved values',
+          level: /:\\s*unknown\\b/.test(profileText) || /everReleased:\\s*null/.test(profileText) ? 'warn' : 'pass',
+          blocking: false,
+          hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
+        })
+      }
+    } catch (err) {
+      checks.push({
+        id: 'project-profile-yaml-parse',
+        label: 'project profile YAML parsing',
+        level: 'fail',
+        blocking: true,
+        hint: err instanceof Error ? err.message : String(err),
+      })
+    }
   }
 
   if (!isFile(scriptPath)) {
