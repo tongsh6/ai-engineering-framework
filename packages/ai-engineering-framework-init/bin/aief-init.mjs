@@ -1129,7 +1129,7 @@ function buildExpertTemplates(locale) {
   }
 }
 
-function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
+function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents, preserveExisting = false } = {}) {
   const base = normalizeBaseDir(baseDir)
   const shouldWriteRootAgents = typeof writeRootAgents === 'boolean' ? writeRootAgents : !base
   const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
@@ -1141,15 +1141,24 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
   if (base) {
-    writeFile(repoPath(base, 'AGENTS.md'), `${baseTemplates.agents}\n`, { force, dryRun })
+    const target = repoPath(base, 'AGENTS.md')
+    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
   if (shouldWriteRootAgents) {
-    writeFile(repoPath('', 'AGENTS.md'), `${rootTemplates.agents}\n`, { force, dryRun })
+    const target = repoPath('', 'AGENTS.md')
+    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
-  writeFile(repoPath(base, 'context/INDEX.md'), `${baseTemplates.index}\n`, { force, dryRun })
-  writeFile(repoPath(base, 'context/PROJECT_PROFILE.yaml'), `${baseTemplates.profile}\n`, { force, dryRun })
+  const indexTarget = repoPath(base, 'context/INDEX.md')
+  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing ${indexTarget}\n`)
+
+  const profileTarget = repoPath(base, 'context/PROJECT_PROFILE.yaml')
+  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\n`)
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
@@ -1166,7 +1175,7 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
 
 function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   const base = normalizeBaseDir(baseDir)
-  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents })
+  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents, preserveExisting: true })
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1' && level !== 'L2' && level !== 'L3') {
@@ -1180,7 +1189,13 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
   if (level === 'L1' || level === 'L2' || level === 'L3') {
     const scaffoldTemplates = buildScaffoldTemplates(locale)
     for (const [targetPath, content] of Object.entries(scaffoldTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      const destination = repoPath(base, targetPath)
+      const isProjectKnowledge = /^context\\/(business|tech|experience)\\//.test(targetPath)
+      if (exists(destination) && (isProjectKnowledge || !force)) {
+        process.stdout.write(`[skip] preserve existing ${destination}\\n`)
+        continue
+      }
+      writeFile(destination, content, { force, dryRun })
     }
 
     if (base) {
