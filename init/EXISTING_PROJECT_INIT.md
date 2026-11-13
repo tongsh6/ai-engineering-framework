@@ -32,6 +32,8 @@ L0（5 分钟）：
 L0+（再 5 分钟）：
 - 生成 context/tech/REPO_SNAPSHOT.md（用 templates/retrofit/ 初稿）
 
+本仓库源码调试时，先运行 `npm install --prefix packages/ai-engineering-framework-init`，再使用本地脚本。普通项目接入优先使用下方 npx 命令。
+
 可选：用脚本一键生成（仅写入 AIEF 文件，不触碰业务代码）：
 - node scripts/aief-init.mjs retrofit --level L0
 - node scripts/aief-init.mjs retrofit --level L0+
