@@ -4,12 +4,15 @@ import os from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { parse as parseYaml } from 'yaml'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CLI = path.join(__dirname, '..', 'bin', 'aief-init.mjs')
 const PROFILE_SCHEMA = path.resolve(__dirname, '../../../docs/standards/schemas/project-profile.schema.json')
 const PACKAGED_PROFILE_SCHEMA = path.resolve(__dirname, '../schemas/project-profile.schema.json')
+const ROOT_TEMPLATES = path.resolve(__dirname, '../../../templates/minimal')
+const PACKAGED_TEMPLATES = path.resolve(__dirname, '../templates/minimal')
 
 function run(args, opts = {}) {
   return spawnSync(process.execPath, [CLI, ...args], {
@@ -60,13 +63,41 @@ test('new creates a project profile and operating-context entry in both locales'
       assert.match(profile, /stage: unknown/)
       assert.match(profile, /everReleased: null/)
       assert.match(agents, /PROJECT_PROFILE\.yaml/)
-      assert.match(index, /PROJECT_PROFILE\.yaml/)
+      assert.match(index, /\[PROJECT_PROFILE\.yaml\]\(PROJECT_PROFILE\.yaml\)/)
     } finally {
       cleanup(dir)
     }
   }
 })
 
+
+
+test('minimal templates mirror the canonical generator and packaged copies', () => {
+  const rootAgents = fs.readFileSync(path.join(ROOT_TEMPLATES, 'AGENTS.md'), 'utf8')
+  const packagedAgents = fs.readFileSync(path.join(PACKAGED_TEMPLATES, 'AGENTS.md'), 'utf8')
+  const rootIndex = fs.readFileSync(path.join(ROOT_TEMPLATES, 'context', 'INDEX.md'), 'utf8')
+  const packagedIndex = fs.readFileSync(path.join(PACKAGED_TEMPLATES, 'context', 'INDEX.md'), 'utf8')
+  const rootProfile = fs.readFileSync(path.join(ROOT_TEMPLATES, 'context', 'PROJECT_PROFILE.yaml'), 'utf8')
+  const packagedProfile = fs.readFileSync(path.join(PACKAGED_TEMPLATES, 'context', 'PROJECT_PROFILE.yaml'), 'utf8')
+
+  assert.equal(rootAgents, packagedAgents)
+  assert.equal(rootIndex, packagedIndex)
+  assert.deepEqual(parseYaml(rootProfile), parseYaml(packagedProfile))
+
+  const dir = makeTmp()
+  try {
+    const r = run(['new', '--locale', 'en'], { cwd: dir })
+    assert.equal(r.status, 0, `stderr: ${r.stderr}`)
+    assert.equal(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8'), rootAgents)
+    assert.equal(fs.readFileSync(path.join(dir, 'context', 'INDEX.md'), 'utf8'), rootIndex)
+    assert.deepEqual(
+      parseYaml(fs.readFileSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml'), 'utf8')),
+      parseYaml(rootProfile),
+    )
+  } finally {
+    cleanup(dir)
+  }
+})
 
 test('new --base-dir with --root-agents uses the scoped profile path in both locales', () => {
   for (const locale of ['en', 'zh-CN']) {
@@ -77,9 +108,12 @@ test('new --base-dir with --root-agents uses the scoped profile path in both loc
 
       const rootAgents = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8')
       const scopedAgents = fs.readFileSync(path.join(dir, 'AIEF', 'AGENTS.md'), 'utf8')
+      const scopedIndex = fs.readFileSync(path.join(dir, 'AIEF', 'context', 'INDEX.md'), 'utf8')
       assert.match(rootAgents, /AIEF\/context\/PROJECT_PROFILE\.yaml/)
       assert.match(rootAgents, /AIEF\/docs\/standards\/patterns\/project-operating-context\.md/)
       assert.match(scopedAgents, /context\/PROJECT_PROFILE\.yaml/)
+      assert.match(rootAgents, /AIEF\/context\/business\//)
+      assert.match(scopedIndex, /\[PROJECT_PROFILE\.yaml\]\(PROJECT_PROFILE\.yaml\)/)
       assert.ok(fs.existsSync(path.join(dir, 'AIEF', 'context', 'PROJECT_PROFILE.yaml')))
     } finally {
       cleanup(dir)
