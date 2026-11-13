@@ -33,6 +33,7 @@
 
 | 目录 | 用途 | 何时加载 |
 |------|------|----------|
+| [context/PROJECT_PROFILE.yaml](context/PROJECT_PROFILE.yaml) | 项目身份、生命周期、责任约束 | 工程决策前 |
 | [context/business/](context/business/) | 业务知识 | 理解业务需求、领域模型 |
 | [context/tech/](context/tech/) | 技术文档 | 架构设计、API、开发规范 |
 | [context/experience/](context/experience/) | 经验库 | 避免重复踩坑 |
