@@ -125,7 +125,7 @@ test('new --base-dir with --root-agents uses the scoped profile path in both loc
 test('retrofit reuses an existing custom profile SSOT declared by AGENTS.md', () => {
   const dir = makeTmp()
   try {
-    const created = run(['new'], { cwd: dir })
+    const created = run(['new', '--locale', 'en'], { cwd: dir })
     assert.equal(created.status, 0, `stderr: ${created.stderr}`)
 
     const oldProfile = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
