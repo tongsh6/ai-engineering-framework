@@ -1,0 +1,55 @@
+apiVersion: aief.dev/project-profile/v1
+kind: ProjectProfile
+
+metadata:
+  name: example-project
+  schemaVersion: "1.0"
+
+project:
+  identity:
+    name: Example Project
+    description: Replace with a concise project description.
+    ownership: unknown
+    purposes:
+      - unknown
+    productForms:
+      - unknown
+    audiences:
+      - unknown
+    horizon: unknown
+
+  lifecycle:
+    stage: unknown
+    operatingMode: unknown
+
+  release:
+    everReleased: null
+    channel: unknown
+
+  commitments:
+    users:
+      scope: unknown
+      support: unknown
+
+    deployment:
+      scope: unknown
+
+    data:
+      classification: unknown
+      retention: unknown
+      recovery: unknown
+
+    compatibility:
+      publicApi: unknown
+      internalApi: unknown
+      databaseSchema: unknown
+      userData: unknown
+
+    maintenance:
+      commitment: unknown
+
+  constraints: []
+
+governance:
+  provenance: {}
+  pendingChanges: []
