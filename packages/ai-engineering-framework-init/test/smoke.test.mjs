@@ -151,6 +151,39 @@ test('canonical CLI doctor recognizes profile and warns about unknown facts', ()
 })
 
 
+
+test('doctor validates a project profile at an existing SSOT path', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    const profilePath = 'docs/engineering/project-operating-profile.yaml'
+    const absoluteProfilePath = path.join(dir, profilePath)
+    fs.mkdirSync(path.dirname(absoluteProfilePath), { recursive: true })
+    fs.copyFileSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml'), absoluteProfilePath)
+    fs.appendFileSync(path.join(dir, 'AGENTS.md'), `\\nProject Operating Context profile: ${profilePath}\\n`)
+    fs.appendFileSync(path.join(dir, 'context', 'INDEX.md'), `\\n- ${path.basename(profilePath)}\\n`)
+    const r = run(['doctor', '--profile-path', profilePath, '--json'], { cwd: dir })
+    assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'entry-project-profile' && item.level === 'pass'))
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-schema' && item.level === 'pass'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor rejects profile paths outside the project root', () => {
+  const dir = makeTmp()
+  try {
+    const r = run(['doctor', '--profile-path', '../outside.yaml'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    assert.match(r.stderr, /project-relative path|inside the project root/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
 test('doctor rejects project profiles that violate the JSON Schema', () => {
   const dir = makeTmp()
   try {
