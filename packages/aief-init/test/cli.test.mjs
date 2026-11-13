@@ -200,6 +200,7 @@ test('doctor on empty directory exits non-zero with actionable hints', () => {
     assert.notEqual(r.status, 0)
     assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
     assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
+    assert.match(r.stdout, /\[FAIL\] context\/PROJECT_PROFILE\.yaml entry file/)
     assert.match(r.stdout, /hint:/)
   } finally {
     cleanup(dir)
@@ -231,6 +232,8 @@ test('doctor after L0 retrofit exits 0 and warns about missing scripts/aief.mjs'
     assert.equal(r2.status, 0, `stdout: ${r2.stdout}\nstderr: ${r2.stderr}`)
     assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
     assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)
+    assert.match(r2.stdout, /\[PASS\] context\/PROJECT_PROFILE\.yaml entry file/)
+    assert.match(r2.stdout, /\[WARN\] project profile contains unresolved values/)
     assert.match(r2.stdout, /\[WARN\] scripts\/aief\.mjs available/)
   } finally {
     cleanup(dir)
