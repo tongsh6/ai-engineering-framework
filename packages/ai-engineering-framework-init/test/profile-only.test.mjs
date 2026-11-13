@@ -153,8 +153,8 @@ test('profile-only still blocks AI evidence used to confirm a human-owned field'
 
 test('profile-only cannot be used by mutating commands', (t) => {
   const f = fixture(t)
-  for (const command of ['new', 'retrofit', 'migrate', 'validate']) {
-    const result = run(f.root, [command, '--profile-only'])
+  for (const args of [['new'], ['retrofit'], ['migrate', 'assets'], ['validate', 'refs']]) {
+    const result = run(f.root, [...args, '--profile-only'])
     assert.equal(result.status, 1)
     assert.match(result.stderr, /only supported by doctor/)
   }
