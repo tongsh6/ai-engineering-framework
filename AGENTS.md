@@ -4,9 +4,7 @@
 
 ## 项目概述
 
-**[项目名称]** 是 [项目简介，1-2 句话描述项目做什么]。
-
-**核心价值**：[项目解决什么问题，为谁解决]
+项目身份、目的、目标用户和产品形态以 `context/PROJECT_PROFILE.yaml` 为准。
 
 ## Project Operating Context
 
