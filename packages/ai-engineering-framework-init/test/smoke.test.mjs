@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CLI = path.join(__dirname, '..', 'bin', 'aief-init.mjs')
+const PROFILE_SCHEMA = path.resolve(__dirname, '../../../docs/standards/schemas/project-profile.schema.json')
 
 function run(args, opts = {}) {
   return spawnSync(process.execPath, [CLI, ...args], {
@@ -39,9 +40,51 @@ test('canonical CLI new --dry-run writes nothing', () => {
     const r = run(['new', '--locale', 'en', '--dry-run'], { cwd: dir })
     assert.equal(r.status, 0, `stderr: ${r.stderr}`)
     assert.ok(!fs.existsSync(path.join(dir, 'AGENTS.md')))
+    assert.ok(!fs.existsSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml')))
   } finally {
     cleanup(dir)
   }
+})
+
+test('new creates a project profile and operating-context entry in both locales', () => {
+  for (const locale of ['en', 'zh-CN']) {
+    const dir = makeTmp()
+    try {
+      const r = run(['new', '--locale', locale], { cwd: dir })
+      assert.equal(r.status, 0, `stderr: ${r.stderr}`)
+      const profile = fs.readFileSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml'), 'utf8')
+      const agents = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8')
+      const index = fs.readFileSync(path.join(dir, 'context', 'INDEX.md'), 'utf8')
+      assert.match(profile, /apiVersion: aief\.dev\/project-profile\/v1/)
+      assert.match(profile, /stage: unknown/)
+      assert.match(profile, /everReleased: null/)
+      assert.match(agents, /PROJECT_PROFILE\.yaml/)
+      assert.match(index, /PROJECT_PROFILE\.yaml/)
+    } finally {
+      cleanup(dir)
+    }
+  }
+})
+
+test('retrofit L0 creates the profile without requiring higher adoption levels', () => {
+  const dir = makeTmp()
+  try {
+    const r = run(['retrofit', '--level', 'L0'], { cwd: dir })
+    assert.equal(r.status, 0, `stderr: ${r.stderr}`)
+    assert.ok(fs.existsSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml')))
+    assert.ok(!fs.existsSync(path.join(dir, 'context', 'tech', 'REPO_SNAPSHOT.md')))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('canonical project profile schema is valid JSON and declares strict contract', () => {
+  const schema = JSON.parse(fs.readFileSync(PROFILE_SCHEMA, 'utf8'))
+  assert.equal(schema.$schema, 'https://json-schema.org/draft/2020-12/schema')
+  assert.equal(schema.properties.apiVersion.const, 'aief.dev/project-profile/v1')
+  assert.equal(schema.properties.kind.const, 'ProjectProfile')
+  assert.equal(schema.additionalProperties, false)
+  assert.ok(schema.$defs.lifecycle.properties.stage.enum.includes('mvp_development'))
 })
 
 test('canonical CLI validate refs without scripts exits non-zero', () => {
@@ -62,6 +105,24 @@ test('canonical CLI doctor reports missing entry files on empty directory', () =
     assert.notEqual(r.status, 0)
     assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
     assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
+    assert.match(r.stdout, /\[FAIL\] context\/PROJECT_PROFILE\.yaml entry file/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('canonical CLI doctor recognizes profile and warns about unknown facts', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'entry-project-profile' && item.level === 'pass'))
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-protocol' && item.level === 'pass'))
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-unknowns' && item.level === 'warn'))
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-provenance' && item.level === 'warn'))
   } finally {
     cleanup(dir)
   }
@@ -73,9 +134,9 @@ test('canonical CLI doctor --json returns machine-readable summary', () => {
     const r = run(['doctor', '--json'], { cwd: dir })
     assert.notEqual(r.status, 0)
     const payload = JSON.parse(r.stdout)
-    assert.equal(payload.summary.fail, 2)
+    assert.equal(payload.summary.fail, 3)
     assert.equal(payload.summary.warn, 1)
-    assert.equal(payload.summary.blockingFail, 2)
+    assert.equal(payload.summary.blockingFail, 3)
   } finally {
     cleanup(dir)
   }
