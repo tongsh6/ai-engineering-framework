@@ -115,7 +115,7 @@ function inspectProjectProfileSemantics(profile) {
   }
 
   for (const constraint of profile.project?.constraints ?? []) {
-    const pointer = `/project/constraints/${constraint.id}`
+    const pointer = `/project/constraints/@${constraint.id}`
     const entry = provenance[pointer]
     if (!entry || entry.status !== 'confirmed') {
       findings.push({
