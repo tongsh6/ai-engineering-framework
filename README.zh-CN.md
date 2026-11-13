@@ -30,7 +30,11 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 - 项目规则在团队和工具之间统一
 - 可渐进接入（先最小可用，再按需扩展）
 
-## 项目全局状态与工程策略\n\nAIEF 提供 Project Operating Context，让 AI 区分个人工具、PoC、开源产品、内部系统和生产服务。生命周期只提供默认工程策略；已确认的数据责任和外部承诺优先。详见[项目运行上下文规范](docs/standards/patterns/project-operating-context.md)。\n\n## 它解决什么问题？
+## 项目全局状态与工程策略
+
+AIEF 提供 Project Operating Context，让 AI 区分个人工具、PoC、开源产品、内部系统和生产服务。生命周期只提供默认工程策略；已确认的数据责任和外部承诺优先。详见[项目运行上下文规范](docs/standards/patterns/project-operating-context.md)。
+
+## 它解决什么问题？
 
 在多数团队的日常 AI 开发里，常见问题是：
 
