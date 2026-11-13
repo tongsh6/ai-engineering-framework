@@ -183,7 +183,7 @@ function runDoctor({ baseDir, json }) {
     checks.push({
       id: 'project-profile-provenance',
       label: 'project profile provenance metadata',
-      level: /provenance:\\s*\\{\\s*\\}/.test(profileText) ? 'warn' : 'pass',
+      level: /provenance:\s*\{\s*\}/.test(profileText) ? 'warn' : 'pass',
       blocking: false,
       hint: 'Record provenance for confirmed project facts using the Project Operating Context specification.',
     })
