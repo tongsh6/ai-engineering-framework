@@ -139,6 +139,7 @@ function runDoctor({ baseDir, json }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
   const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
+  const projectProfilePath = path.join(projectRoot, 'context', 'PROJECT_PROFILE.yaml')
   const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
 
   const checks = []
@@ -158,6 +159,35 @@ function runDoctor({ baseDir, json }) {
     blocking: true,
     hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold context index.',
   })
+
+  checks.push({
+    id: 'entry-project-profile',
+    label: 'context/PROJECT_PROFILE.yaml entry file',
+    level: isFile(projectProfilePath) ? 'pass' : 'fail',
+    blocking: true,
+    hint: 'Run aief-init new or retrofit to create the project profile template.',
+  })
+
+  if (isFile(projectProfilePath)) {
+    const profileText = readText(projectProfilePath)
+    const hasProtocol = profileText.includes('apiVersion: aief.dev/project-profile/v1') &&
+      profileText.includes('kind: ProjectProfile') &&
+      profileText.includes('schemaVersion:')
+    checks.push({
+      id: 'project-profile-protocol',
+      label: 'project profile protocol markers',
+      level: hasProtocol ? 'pass' : 'fail',
+      blocking: true,
+      hint: hasProtocol ? '' : 'Check apiVersion, kind, and metadata.schemaVersion against the AIEF Project Profile contract.',
+    })
+    checks.push({
+      id: 'project-profile-unknowns',
+      label: 'project profile contains unresolved values',
+      level: /:\\s*unknown\\b/.test(profileText) || /everReleased:\\s*null/.test(profileText) ? 'warn' : 'pass',
+      blocking: false,
+      hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
+    })
+  }
 
   if (!isFile(scriptPath)) {
     checks.push({
@@ -501,6 +531,41 @@ function resolveLocale(input) {
 }
 
 function buildMinimalTemplates(locale, contextEntry) {
+  const profile = [
+    'apiVersion: aief.dev/project-profile/v1',
+    'kind: ProjectProfile',
+    '',
+    'metadata:',
+    '  name: example-project',
+    '  schemaVersion: "1.0"',
+    '',
+    'project:',
+    '  identity:',
+    '    name: Example Project',
+    '    description: Replace with a concise project description.',
+    '    ownership: unknown',
+    '    purposes: [unknown]',
+    '    productForms: [unknown]',
+    '    audiences: [unknown]',
+    '    horizon: unknown',
+    '  lifecycle:',
+    '    stage: unknown',
+    '    operatingMode: unknown',
+    '  release:',
+    '    everReleased: null',
+    '    channel: unknown',
+    '  commitments:',
+    '    users: { scope: unknown, support: unknown }',
+    '    deployment: { scope: unknown }',
+    '    data: { classification: unknown, retention: unknown, recovery: unknown }',
+    '    compatibility: { publicApi: unknown, internalApi: unknown, databaseSchema: unknown, userData: unknown }',
+    '    maintenance: { commitment: unknown }',
+    '  constraints: []',
+    '',
+    'governance:',
+    '  provenance: {}',
+    '  pendingChanges: []',
+  ].join('\\n');
 
   if (locale === 'en') {
     return {
@@ -508,6 +573,14 @@ function buildMinimalTemplates(locale, contextEntry) {
         '# [Project Name] AI Guide',
         '',
         'This is the project-level entry for AI-assisted engineering.',
+        '',
+        '## Project Operating Context',
+        '',
+        'Before engineering decisions, read context/PROJECT_PROFILE.yaml.',
+        'Follow docs/standards/patterns/project-operating-context.md when installed.',
+        'Never interpret unknown as none. Lifecycle provides defaults only; data responsibilities and confirmed external commitments take precedence.',
+        'Never change human-confirmed fields autonomously. Task adjustments must be scoped and must not bypass data or security constraints.',
+        'The project profile is the single source of truth for project-level facts.',
         '',
         'Language:',
         '- Use Chinese for communication by default',
@@ -524,12 +597,16 @@ function buildMinimalTemplates(locale, contextEntry) {
         '',
         'Context Entry:',
         `- ${contextEntry}`,
+        '- context/PROJECT_PROFILE.yaml',
         '',
-      ].join('\n'),
+      ].join('\\n'),
       index: [
         '# Context Index',
         '',
         'This is the navigation entry for long-term project context.',
+        '',
+        '- PROJECT_PROFILE.yaml: project identity, lifecycle, and commitments. Read before engineering decisions.',
+        '- docs/standards/patterns/project-operating-context.md: policy interpretation and conflict handling.',
         '',
         'Directories:',
         '',
@@ -538,7 +615,8 @@ function buildMinimalTemplates(locale, contextEntry) {
         '        tech/',
         '        experience/',
         '',
-      ].join('\n'),
+      ].join('\\n'),
+      profile,
     }
   }
 
@@ -547,6 +625,14 @@ function buildMinimalTemplates(locale, contextEntry) {
       '# [项目名称] AI 编程指南',
       '',
       '这是项目级 AI 协作入口。',
+      '',
+      '## Project Operating Context',
+      '',
+      '进行工程决策前，必须读取 context/PROJECT_PROFILE.yaml。',
+      '遵循 docs/standards/patterns/project-operating-context.md（若已安装）。',
+      '不得将 unknown 当作 none；生命周期只提供默认策略，数据责任和已确认外部承诺优先。',
+      '不得自行修改人工确认字段；任务级调整必须限定作用域，不能绕过数据和安全约束。',
+      '项目画像是项目级事实的唯一来源。',
       '',
       '语言规则：',
       '- 交流默认使用中文',
@@ -563,12 +649,16 @@ function buildMinimalTemplates(locale, contextEntry) {
       '',
       '上下文入口：',
       `- ${contextEntry}`,
+      '- context/PROJECT_PROFILE.yaml',
       '',
-    ].join('\n'),
+    ].join('\\n'),
     index: [
       '# 上下文索引',
       '',
       '这是项目长期上下文的导航入口。',
+      '',
+      '- PROJECT_PROFILE.yaml：项目身份、生命周期和责任约束；工程决策前必须读取。',
+      '- docs/standards/patterns/project-operating-context.md：策略推导和冲突处理规范。',
       '',
       '目录结构：',
       '',
@@ -577,7 +667,8 @@ function buildMinimalTemplates(locale, contextEntry) {
       '        tech/',
       '        experience/',
       '',
-    ].join('\n'),
+    ].join('\\n'),
+    profile,
   }
 }
 
@@ -1051,6 +1142,7 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   }
 
   writeFile(repoPath(base, 'context/INDEX.md'), `${baseTemplates.index}\n`, { force, dryRun })
+  writeFile(repoPath(base, 'context/PROJECT_PROFILE.yaml'), `${baseTemplates.profile}\n`, { force, dryRun })
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
