@@ -127,7 +127,7 @@ test('canonical CLI doctor reports missing entry files on empty directory', () =
     assert.notEqual(r.status, 0)
     assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
     assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
-    assert.match(r.stdout, /\[FAIL\] context\/PROJECT_PROFILE\.yaml entry file/)
+    assert.match(r.stdout, /\[FAIL\] project profile file: context\/PROJECT_PROFILE\.yaml/)
   } finally {
     cleanup(dir)
   }
