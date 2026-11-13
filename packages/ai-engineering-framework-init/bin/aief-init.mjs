@@ -170,9 +170,9 @@ function printHelp() {
       'aief-init (optional bootstrap)',
       '',
       'Usage:',
-      '  aief-init new',
-      '  aief-init retrofit --level L0',
-      '  aief-init retrofit --level L0+',
+      '  aief-init new [--profile-path <path>]',
+      '  aief-init retrofit --level L0 [--profile-path <path>]',
+      '  aief-init retrofit --level L0+ [--profile-path <path>]',
       '  aief-init doctor [--base-dir <path>] [--profile-path <path>]',
       '  aief-init validate refs [--fix] [--base-dir <path>]',
       '  aief-init migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]',
@@ -181,7 +181,7 @@ function printHelp() {
       '  --level <L0|L0+|L1|L2|L3>   Migration level for retrofit (default: L0+)',
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
-      '  --profile-path <path> Profile path relative to the project root (default: context/PROJECT_PROFILE.yaml; doctor only)',
+      '  --profile-path <path> Profile path relative to the AIEF base directory (default: context/PROJECT_PROFILE.yaml). Existing AGENTS.md declarations are reused.',
       '  --to-base-dir <path>  Migration target base directory (for migrate)',
       '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
       '  --no-root-agents     Skip writing AGENTS.md at repo root',
@@ -304,7 +304,7 @@ function resolveProjectRelativePath(projectRoot, input) {
 function extractDeclaredProfilePaths(agentsPath) {
   if (!isFile(agentsPath)) return []
   const content = readText(agentsPath)
-  const pattern = /^\\s*(?:[-*]\\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\\s*[:：]\\s*(?:`([^`]+)`|"([^"]+)"|'([^']+)'|(\\S+))\\s*$/gim
+  const pattern = /^\s*(?:[-*]\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\s*[:：]\s*(?:\`([^\`]+)\`|"([^"]+)"|'([^']+)'|(\S+))\s*$/gim
   const paths = []
   for (const match of content.matchAll(pattern)) {
     const value = match[1] || match[2] || match[3] || match[4]
@@ -331,7 +331,7 @@ function resolveInitProfilePath({ baseDir, explicitProfilePath, writeRootAgents 
   const rootAgentsPath = path.resolve(process.cwd(), 'AGENTS.md')
   if (base && exists(rootAgentsPath)) {
     for (const declared of extractDeclaredProfilePaths(rootAgentsPath)) {
-      const normalized = declared.replace(/\\\\/g, '/').replace(/^\\.\\//, '')
+      const normalized = declared.replace(/\\/g, '/').replace(/^\.\//, '')
       const prefix = `${base}/`
       if (normalized.startsWith(prefix)) {
         declaredPaths.push(normalizeProfilePath(projectRoot, normalized.slice(prefix.length)))
@@ -1468,7 +1468,7 @@ function initMinimal({
     explicitProfilePath: requestedProfilePath,
     writeRootAgents: shouldWriteRootAgents,
   })
-  const profileIndexEntry = path.posix.relative('context', profilePath.replace(/\\\\/g, '/'))
+  const profileIndexEntry = path.posix.relative('context', profilePath.replace(/\\/g, '/'))
   const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
   const rootProfileEntry = scopedRelPath(base, profilePath)
   const rootSpecEntry = scopedRelPath(base, 'docs/standards/patterns/project-operating-context.md')
@@ -1494,23 +1494,23 @@ function initMinimal({
 
   if (base) {
     const target = repoPath(base, 'AGENTS.md')
-    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\\n`, { force, dryRun })
-    else process.stdout.write(`[skip] preserve existing ${target}\\n`)
+    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
   if (shouldWriteRootAgents) {
     const target = repoPath('', 'AGENTS.md')
-    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\\n`, { force, dryRun })
-    else process.stdout.write(`[skip] preserve existing ${target}\\n`)
+    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
   const indexTarget = repoPath(base, 'context/INDEX.md')
-  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\\n`, { force, dryRun })
-  else process.stdout.write(`[skip] preserve existing ${indexTarget}\\n`)
+  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing ${indexTarget}\n`)
 
   const profileTarget = repoPath(base, profilePath)
-  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\\n`, { force, dryRun })
-  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\\n`)
+  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\n`)
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
