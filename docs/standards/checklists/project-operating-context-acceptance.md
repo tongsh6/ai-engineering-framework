@@ -108,9 +108,9 @@
 | S06 | everReleased=true 且 channel=none | FAIL |
 | S07 | 人工字段缺少 provenance | Doctor WARNING |
 | S08 | 显式 unknown | Schema PASS，Doctor WARNING |
-| S09 | AI 修改 human_confirmed 字段 | 治理校验 FAIL |
+| S09 | human_confirmed 字段标记 confirmed，但来源为 repository_evidence | Doctor FAIL |
 | S10 | AI 字段没有来源证据 | Doctor WARNING；不得作为已验证事实 |
-| S11 | pending change 覆盖正式值 | 治理校验 FAIL |
+| S11 | pending change 缺少证据列表 | Schema FAIL |
 | S12 | 相互矛盾的责任声明 | Doctor WARNING 或 BLOCK，按数据/安全影响判定 |
 
 ## 4. 初始化测试
