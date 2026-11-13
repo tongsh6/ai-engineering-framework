@@ -787,7 +787,7 @@ function buildMinimalTemplates(
     'governance:',
     '  provenance: {}',
     '  pendingChanges: []',
-  ].join('\\n')
+  ].join('\n')
 
   if (locale === 'en') {
     return {
@@ -834,7 +834,7 @@ function buildMinimalTemplates(
         '| ' + contextPrefix + 'context/experience/ | Experience library | Before implementation |',
         '| ' + contextPrefix + 'workflow/ | Workflows | Complex task phase guides (optional) |',
         '| ' + contextPrefix + 'docs/standards/ | Standards | Load as needed |',
-      ].join('\\n'),
+      ].join('\n'),
       index: [
         '# Context Index',
         '',
@@ -853,7 +853,7 @@ function buildMinimalTemplates(
         '- context/business/DOMAIN.md',
         '- context/tech/ARCHITECTURE.md',
         '- context/experience/INDEX.md',
-      ].join('\\n'),
+      ].join('\n'),
       profile,
     }
   }
@@ -902,7 +902,7 @@ function buildMinimalTemplates(
       '| ' + contextPrefix + 'context/experience/ | 经验库 | 实现前检索相关经验 |',
       '| ' + contextPrefix + 'workflow/ | 工作流 | 复杂任务阶段指南（可选）|',
       '| ' + contextPrefix + 'docs/standards/ | 规范标准 | 按需加载 |',
-    ].join('\\n'),
+    ].join('\n'),
     index: [
       '# 上下文索引',
       '',
@@ -921,7 +921,7 @@ function buildMinimalTemplates(
       '- context/business/DOMAIN.md',
       '- context/tech/ARCHITECTURE.md',
       '- context/experience/INDEX.md',
-    ].join('\\n'),
+    ].join('\n'),
     profile,
   }
 }
