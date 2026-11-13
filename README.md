@@ -66,11 +66,11 @@ npx --yes @tongsh6/aief-init@latest new --locale en
 
 This creates `AGENTS.md`, `context/INDEX.md`, and `context/PROJECT_PROFILE.yaml`. The profile starts with explicit `unknown` values; confirm project identity, lifecycle, and commitments instead of asking AI to guess.
 
-Step 2 - Open the generated `AGENTS.md` template and fill in:
+Step 2 - Fill in the generated project context:
 
-1. One-line project description
-2. Key constraints (e.g., directory boundaries, critical rules)
-3. Common commands (`build` / `test` / `run`)
+1. Confirm project identity, lifecycle, users, and commitments in `context/PROJECT_PROFILE.yaml`; keep unknown facts as `unknown`.
+2. Fill in key engineering constraints in `AGENTS.md` (e.g., directory boundaries and critical rules).
+3. Add common commands (`build` / `test` / `run`) to `AGENTS.md`.
 
 Keep it rough - short bullets are enough for L0.
 
