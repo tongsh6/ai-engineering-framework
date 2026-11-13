@@ -31,6 +31,8 @@
 3. 打开 AGENTS.md，补充核心工程约束（例如目录边界、关键规则）和常用命令（build/test/run）。
 4. 只要目录与入口存在即可结束初始化
 
+本仓库源码调试时，先运行 `npm install --prefix packages/ai-engineering-framework-init`，再使用本地脚本。普通项目接入优先使用下方 npx 命令。
+
 可选：用脚本一键生成（仅写入 AIEF 文件，不触碰业务代码）：
 - node scripts/aief-init.mjs new
 
