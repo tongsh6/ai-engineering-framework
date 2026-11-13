@@ -263,7 +263,7 @@ function isFile(p) {
 
 function resolveProjectRelativePath(projectRoot, input) {
   const value = String(input || '').trim()
-  if (!value || path.isAbsolute(value) || /^[A-Za-z]:[\\\\/]/.test(value)) {
+  if (!value || path.isAbsolute(value) || /^[A-Za-z]:/.test(value)) {
     throw new Error('Profile path must be a non-empty project-relative path.')
   }
   const resolved = path.resolve(projectRoot, value)
