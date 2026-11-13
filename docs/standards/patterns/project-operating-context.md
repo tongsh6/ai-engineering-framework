@@ -89,7 +89,7 @@ AI 不得仅凭代码规模、版本号或仓库活跃度推断项目生命周�
 
 每个关键事实应在 `governance.provenance` 中按 JSON Pointer 风格字段路径记录来源，例如 `/project/identity/ownership`。
 
-`project.constraints` 中的每条约束以稳定 ID 作为来源键：`/project/constraints/<id>`；禁止使用数组下标，以免约束重排导致来源错配。Doctor 必须检查每条约束是否具有人工确认来源。
+普通对象字段的 provenance key 使用 RFC 6901 JSON Pointer（例如 `/project/identity/ownership`）。`project.constraints` 是数组，但为避免重排导致来源错配，AIEF 定义稳定 ID 扩展地址 `/project/constraints/@<id>`；其中 `@<id>` 是 AIEF 的数组项 ID 选择器，不是 RFC 6901 原生数组索引。禁止使用数组下标。Doctor 必须按约束 ID 解析并检查每条约束的人工确认来源。
 
 状态：
 - confirmed：来源足以支持当前值。
