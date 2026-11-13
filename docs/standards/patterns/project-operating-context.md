@@ -16,6 +16,7 @@ Project Operating Context为 AI 提供项目级事实和决策约束。它回答
 ## 2. 唯一事实来源
 
 项目级画像唯一事实源为 `context/PROJECT_PROFILE.yaml`。
+这是 AIEF 标准初始化的默认位置。对于已有明确 SSOT 目录约束的项目，可以在其既有权威位置保存同一 Profile 契约，并在 AGENTS.md 中明确唯一文件路径；不得为了遵循默认路径而新建平行 context 目录，也不得复制第二份画像。Schema 与字段治理规则不因文件位置改变。
 
 - `AGENTS.md` 只定义入口与消费规则，不复制画像字段。
 - `context/INDEX.md` 负责导航，不复制画像内容。
