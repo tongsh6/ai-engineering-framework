@@ -4,7 +4,7 @@
 
 ## 1. 目标与范围
 
-Project Operating Context（POC）为 AI 提供项目级事实和决策约束。它回答：
+Project Operating Context为 AI 提供项目级事实和决策约束。它回答：
 
 1. 项目是什么、服务谁、由谁负责？
 2. 项目处于什么生命周期阶段，当前主要工作模式是什么？
