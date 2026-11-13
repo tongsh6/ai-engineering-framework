@@ -1650,6 +1650,7 @@ function main() {
         level: opts.level,
         locale: localeResult.locale,
         baseDir,
+        profilePath: opts.profilePath,
         force: opts.force,
         dryRun: opts.dryRun,
         writeRootAgents,

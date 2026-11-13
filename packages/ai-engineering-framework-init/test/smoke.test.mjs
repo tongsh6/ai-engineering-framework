@@ -162,6 +162,46 @@ test('retrofit reuses an existing custom profile SSOT declared by AGENTS.md', ()
   }
 })
 
+test('retrofit honors an explicit custom profile path when AGENTS.md has no declaration', () => {
+  const dir = makeTmp()
+  try {
+    const profilePath = 'docs/engineering/project-profile.yaml'
+    const r = run(['retrofit', '--level', 'L0', '--profile-path', profilePath], { cwd: dir })
+    assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
+
+    const customProfile = path.join(dir, profilePath)
+    const defaultProfile = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
+    assert.ok(fs.existsSync(customProfile), 'custom profile was not created')
+    assert.ok(!fs.existsSync(defaultProfile), 'retrofit created a duplicate default profile')
+
+    const agents = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8')
+    assert.ok(agents.includes(profilePath), 'AGENTS.md does not declare the custom profile path')
+
+    const doctor = run(['doctor', '--profile-path', profilePath, '--json'], { cwd: dir })
+    assert.equal(doctor.status, 0, `stdout: ${doctor.stdout} stderr: ${doctor.stderr}`)
+    const payload = JSON.parse(doctor.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-schema' && item.level === 'pass'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('retrofit rejects an explicit profile path that conflicts with the existing AGENTS.md SSOT', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+
+    const r = run(['retrofit', '--level', 'L0', '--profile-path', 'docs/other-profile.yaml'], { cwd: dir })
+    assert.notEqual(r.status, 0)
+    assert.match(r.stderr, /declares project profile|parallel profile/)
+    assert.ok(fs.existsSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml')))
+    assert.ok(!fs.existsSync(path.join(dir, 'docs', 'other-profile.yaml')))
+  } finally {
+    cleanup(dir)
+  }
+})
+
 test('doctor resolves constraint provenance by stable constraint ID address', () => {
   const dir = makeTmp()
   try {
