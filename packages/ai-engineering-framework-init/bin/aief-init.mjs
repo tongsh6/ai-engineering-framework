@@ -745,7 +745,14 @@ function resolveLocale(input) {
   }
 }
 
-function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PROJECT_PROFILE.yaml', operatingContextSpecEntry = 'docs/standards/patterns/project-operating-context.md') {
+function buildMinimalTemplates(
+  locale,
+  contextEntry,
+  profileEntry = 'context/PROJECT_PROFILE.yaml',
+  operatingContextSpecEntry = 'docs/standards/patterns/project-operating-context.md',
+  profileIndexEntry = 'PROJECT_PROFILE.yaml',
+  contextPrefix = '',
+) {
   const profile = [
     'apiVersion: aief.dev/project-profile/v1',
     'kind: ProjectProfile',
@@ -780,7 +787,7 @@ function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PRO
     'governance:',
     '  provenance: {}',
     '  pendingChanges: []',
-  ].join('\n');
+  ].join('\\n')
 
   if (locale === 'en') {
     return {
@@ -791,11 +798,19 @@ function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PRO
         '',
         '## Project Operating Context',
         '',
-        `Before engineering decisions, read \`${profileEntry}\`.`,
-        `Follow \`${operatingContextSpecEntry}\` when installed.`,
-        'Never interpret unknown as none. Lifecycle provides defaults only; data responsibilities and confirmed external commitments take precedence.',
-        'Never change human-confirmed fields autonomously. Task adjustments must be scoped and must not bypass data or security constraints.',
-        'The project profile is the single source of truth for project-level facts.',
+        'Before design, implementation, refactoring, data, compatibility, or release work:',
+        '',
+        '1. Read `' + profileEntry + '` for project identity, lifecycle, release status, and commitments.',
+        '2. Follow `' + operatingContextSpecEntry + '` when installed.',
+        '3. Distinguish confirmed facts, proposals, unknowns, and stale information. Never interpret unknown as none.',
+        '4. Lifecycle provides defaults only; real data responsibilities and confirmed external commitments take precedence.',
+        '5. Task-level adjustments must state their reason and scope. They must not silently change the project profile or bypass data, security, or external commitments.',
+        '6. Never change human-confirmed fields autonomously. Propose a pending change when evidence suggests they are stale.',
+        '',
+        'The project profile is the single source of truth for project-level facts. Do not duplicate profile fields in AGENTS.md.',
+        '',
+        'Profile: `' + profileEntry + '`',
+        'Specification: `' + operatingContextSpecEntry + '`',
         '',
         'Language:',
         '- Use Chinese for communication by default',
@@ -807,16 +822,25 @@ function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PRO
         '- run:',
         '',
         'Context Entry:',
-        `- ${contextEntry}`,
-        `- ${profileEntry}`,
+        '- ' + contextEntry,
+        '- ' + profileEntry,
         '',
-      ].join('\n'),
+        'Knowledge Base:',
+        '| Directory | Purpose | When to Load |',
+        '|---|---|---|',
+        '| ' + profileEntry + ' | Project identity, lifecycle, commitments | Before engineering decisions |',
+        '| ' + contextPrefix + 'context/business/ | Business knowledge | Requirements and domain models |',
+        '| ' + contextPrefix + 'context/tech/ | Technical docs | Architecture, APIs, conventions |',
+        '| ' + contextPrefix + 'context/experience/ | Experience library | Before implementation |',
+        '| ' + contextPrefix + 'workflow/ | Workflows | Complex task phase guides (optional) |',
+        '| ' + contextPrefix + 'docs/standards/ | Standards | Load as needed |',
+      ].join('\\n'),
       index: [
         '# Context Index',
         '',
         'This is the navigation entry for long-term project context.',
         '',
-        `- [${profileEntry}] project identity, lifecycle, and commitments. Read before engineering decisions.`,
+        '- [' + profileIndexEntry + '] project identity, lifecycle, release status, and commitments. Read before engineering decisions.',
         '',
         'Directories:',
         '',
@@ -825,7 +849,11 @@ function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PRO
         '        tech/',
         '        experience/',
         '',
-      ].join('\n'),
+        'Suggested next documents (optional):',
+        '- context/business/DOMAIN.md',
+        '- context/tech/ARCHITECTURE.md',
+        '- context/experience/INDEX.md',
+      ].join('\\n'),
       profile,
     }
   }
@@ -838,33 +866,49 @@ function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PRO
       '',
       '## Project Operating Context',
       '',
-      `进行工程决策前，必须读取 \`${profileEntry}\`。`,
-      `遵循 \`${operatingContextSpecEntry}\`（若已安装）。`,
-      '不得将 unknown 当作 none；生命周期只提供默认策略，数据责任和已确认外部承诺优先。',
-      '不得自行修改人工确认字段；任务级调整必须限定作用域，不能绕过数据和安全约束。',
-      '项目画像是项目级事实的唯一来源。',
+      '进行设计、实现、重构、数据、兼容或发布工作前：',
+      '',
+      '1. 读取 `' + profileEntry + '`，了解项目身份、生命周期、发布状态和责任约束。',
+      '2. 遵循 `' + operatingContextSpecEntry + '`（若已安装）。',
+      '3. 区分已确认事实、候选推断、未知和过期信息；不得把 unknown 当作 none。',
+      '4. 生命周期只提供默认策略；真实数据责任和已确认外部承诺优先。',
+      '5. 任务级调整必须说明理由和作用域，不得静默改变项目画像或绕过数据、安全及外部责任。',
+      '6. 不得自行修改人工确认字段；发现变化时提出待确认建议。',
+      '',
+      '项目画像是项目级事实的唯一来源。AGENTS.md 不复制画像字段。',
+      '',
+      '画像：`' + profileEntry + '`',
+      '规范：`' + operatingContextSpecEntry + '`',
       '',
       '语言规则：',
       '- 交流默认使用中文',
       '- 代码/命令/标识符保持英文',
       '',
-
       '常用命令：',
       '- build:',
       '- test:',
       '- run:',
       '',
       '上下文入口：',
-      `- ${contextEntry}`,
-      `- ${profileEntry}`,
+      '- ' + contextEntry,
+      '- ' + profileEntry,
       '',
-    ].join('\n'),
+      '知识库导航：',
+      '| 目录 | 用途 | 何时加载 |',
+      '|---|---|---|',
+      '| ' + profileEntry + ' | 项目身份、生命周期和责任约束 | 工程决策前 |',
+      '| ' + contextPrefix + 'context/business/ | 业务知识 | 理解需求和领域模型 |',
+      '| ' + contextPrefix + 'context/tech/ | 技术文档 | 架构、API、开发规范 |',
+      '| ' + contextPrefix + 'context/experience/ | 经验库 | 实现前检索相关经验 |',
+      '| ' + contextPrefix + 'workflow/ | 工作流 | 复杂任务阶段指南（可选）|',
+      '| ' + contextPrefix + 'docs/standards/ | 规范标准 | 按需加载 |',
+    ].join('\\n'),
     index: [
       '# 上下文索引',
       '',
       '这是项目长期上下文的导航入口。',
       '',
-      `- [${profileEntry}]：项目身份、生命周期和责任约束；工程决策前必须读取。`,
+      '- [' + profileIndexEntry + ']：项目身份、生命周期、发布状态和责任约束；工程决策前必须读取。',
       '',
       '目录结构：',
       '',
@@ -873,7 +917,11 @@ function buildMinimalTemplates(locale, contextEntry, profileEntry = 'context/PRO
       '        tech/',
       '        experience/',
       '',
-    ].join('\n'),
+      '建议补充的文档（可选）：',
+      '- context/business/DOMAIN.md',
+      '- context/tech/ARCHITECTURE.md',
+      '- context/experience/INDEX.md',
+    ].join('\\n'),
     profile,
   }
 }
@@ -1340,7 +1388,7 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents, preserve
   const rootSpecEntry = scopedRelPath(base, 'docs/standards/patterns/project-operating-context.md')
   const baseContextEntry = 'context/INDEX.md'
   const baseTemplates = buildMinimalTemplates(locale, baseContextEntry)
-  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry, rootProfileEntry, rootSpecEntry)
+  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry, rootProfileEntry, rootSpecEntry, 'PROJECT_PROFILE.yaml', base ? base + '/' : '')
   const bKeep = templatePath('templates/minimal/context/business/.gitkeep')
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
