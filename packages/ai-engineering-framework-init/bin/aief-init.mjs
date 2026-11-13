@@ -173,7 +173,7 @@ function printHelp() {
       '  aief-init new [--profile-path <path>]',
       '  aief-init retrofit --level L0 [--profile-path <path>]',
       '  aief-init retrofit --level L0+ [--profile-path <path>]',
-      '  aief-init doctor [--base-dir <path>] [--profile-path <path>]',
+      '  aief-init doctor [--base-dir <path>] [--profile-path <path>] [--profile-only]',
       '  aief-init validate refs [--fix] [--base-dir <path>]',
       '  aief-init migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]',
       '',
@@ -182,6 +182,7 @@ function printHelp() {
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
       '  --profile-path <path> Profile path relative to the AIEF base directory (default: context/PROJECT_PROFILE.yaml). Existing AGENTS.md declarations are reused.',
+      '  --profile-only       Check only the Profile contract and governance (doctor); no scaffold or delegated scripts.',
       '  --to-base-dir <path>  Migration target base directory (for migrate)',
       '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
       '  --no-root-agents     Skip writing AGENTS.md at repo root',
@@ -215,6 +216,7 @@ function parseArgs(argv) {
     json: false,
     toBaseDir: undefined,
     profilePath: undefined,
+    profileOnly: false,
   }
 
   let start = 1
@@ -234,6 +236,7 @@ function parseArgs(argv) {
     else if (a === '--dry-run') opts.dryRun = true
     else if (a === '--json') opts.json = true
     else if (a === '--fix') opts.fix = true
+    else if (a === '--profile-only') opts.profileOnly = true
     else if (a === '--level') {
       const v = args[i + 1]
       if (!v) throw new Error('Missing value for --level')
@@ -266,6 +269,10 @@ function parseArgs(argv) {
     } else {
       throw new Error(`Unknown option: ${a}`)
     }
+  }
+
+  if (opts.profileOnly && command !== 'doctor') {
+    throw new Error('--profile-only is only supported by doctor.')
   }
 
   return opts
@@ -373,55 +380,60 @@ function resolveInitProfilePath({ baseDir, explicitProfilePath, writeRootAgents 
   return requestedPath
 }
 
-function runDoctor({ baseDir, json, profilePath }) {
+function runDoctor({ baseDir, json, profilePath, profileOnly = false }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
   const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
-  const resolvedProfilePath = resolveProjectRelativePath(projectRoot, profilePath || 'context/PROJECT_PROFILE.yaml')
-  const profilePathLabel = profilePath || 'context/PROJECT_PROFILE.yaml'
+  const profilePathLabel = profileOnly
+    ? resolveInitProfilePath({ baseDir, explicitProfilePath: profilePath })
+    : (profilePath || 'context/PROJECT_PROFILE.yaml')
+  const resolvedProfilePath = resolveProjectRelativePath(projectRoot, profilePathLabel)
   const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
 
   const checks = []
 
-  checks.push({
-    id: 'entry-agents',
-    label: 'AGENTS.md entry file',
-    level: isFile(agentsPath) ? 'pass' : 'fail',
-    blocking: true,
-    hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold entry files.',
-  })
-
-  checks.push({
-    id: 'entry-context-index',
-    label: 'context/INDEX.md entry file',
-    level: isFile(contextIndexPath) ? 'pass' : 'fail',
-    blocking: true,
-    hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold context index.',
-  })
-
-  if (isFile(agentsPath)) {
-    const agentsText = readText(agentsPath)
-    const hasProfileInstruction = agentsText.includes(profilePathLabel) || agentsText.includes(path.basename(profilePathLabel))
-    const hasOperatingContext = agentsText.toLowerCase().includes('project operating context')
+  // Manual adoption validates the same Profile without imposing AIEF's scaffold.
+  if (!profileOnly) {
     checks.push({
-      id: 'agents-project-operating-context',
-      label: 'AGENTS.md loads project operating context',
-      level: hasProfileInstruction && hasOperatingContext ? 'pass' : 'warn',
-      blocking: false,
-      hint: hasProfileInstruction && hasOperatingContext ? '' : `Add the Project Operating Context entry rules and profile path (${profilePathLabel}) to AGENTS.md.`,
+      id: 'entry-agents',
+      label: 'AGENTS.md entry file',
+      level: isFile(agentsPath) ? 'pass' : 'fail',
+      blocking: true,
+      hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold entry files.',
     })
-  }
 
-  if (isFile(contextIndexPath)) {
-    const indexText = readText(contextIndexPath)
-    const hasProfileNavigation = indexText.includes(path.basename(profilePathLabel))
     checks.push({
-      id: 'context-index-project-profile',
-      label: 'context/INDEX.md navigates to project profile',
-      level: hasProfileNavigation ? 'pass' : 'warn',
-      blocking: false,
-      hint: hasProfileNavigation ? '' : `Add ${profilePathLabel} to the context index.`,
+      id: 'entry-context-index',
+      label: 'context/INDEX.md entry file',
+      level: isFile(contextIndexPath) ? 'pass' : 'fail',
+      blocking: true,
+      hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold context index.',
     })
+
+    if (isFile(agentsPath)) {
+      const agentsText = readText(agentsPath)
+      const hasProfileInstruction = agentsText.includes(profilePathLabel) || agentsText.includes(path.basename(profilePathLabel))
+      const hasOperatingContext = agentsText.toLowerCase().includes('project operating context')
+      checks.push({
+        id: 'agents-project-operating-context',
+        label: 'AGENTS.md loads project operating context',
+        level: hasProfileInstruction && hasOperatingContext ? 'pass' : 'warn',
+        blocking: false,
+        hint: hasProfileInstruction && hasOperatingContext ? '' : `Add the Project Operating Context entry rules and profile path (${profilePathLabel}) to AGENTS.md.`,
+      })
+    }
+
+    if (isFile(contextIndexPath)) {
+      const indexText = readText(contextIndexPath)
+      const hasProfileNavigation = indexText.includes(path.basename(profilePathLabel))
+      checks.push({
+        id: 'context-index-project-profile',
+        label: 'context/INDEX.md navigates to project profile',
+        level: hasProfileNavigation ? 'pass' : 'warn',
+        blocking: false,
+        hint: hasProfileNavigation ? '' : `Add ${profilePathLabel} to the context index.`,
+      })
+    }
   }
 
   checks.push({
@@ -476,31 +488,34 @@ function runDoctor({ baseDir, json, profilePath }) {
     }
   }
 
-  if (!isFile(scriptPath)) {
-    checks.push({
-      id: 'script-aief',
-      label: 'scripts/aief.mjs available',
-      level: 'warn',
-      blocking: false,
-      hint: 'Run `aief-init retrofit --level L1` to enable `validate`/`migrate` delegation.',
-    })
-  } else {
-    const result = spawnSync(process.execPath, [scriptPath, 'validate', 'refs'], {
-      cwd: projectRoot,
-      encoding: 'utf8',
-    })
+  // Profile-only checks must not execute project-supplied validation scripts.
+  if (!profileOnly) {
+    if (!isFile(scriptPath)) {
+      checks.push({
+        id: 'script-aief',
+        label: 'scripts/aief.mjs available',
+        level: 'warn',
+        blocking: false,
+        hint: 'Run `aief-init retrofit --level L1` to enable `validate`/`migrate` delegation.',
+      })
+    } else {
+      const result = spawnSync(process.execPath, [scriptPath, 'validate', 'refs'], {
+        cwd: projectRoot,
+        encoding: 'utf8',
+      })
 
-    const validateOk = result.status === 0
-    checks.push({
-      id: 'refs-validate',
-      label: 'reference consistency (validate refs)',
-      level: validateOk ? 'pass' : 'fail',
-      blocking: true,
-      hint: validateOk
-        ? ''
-        : 'Run `aief-init validate refs --fix` to auto-fix deterministic reference issues.',
-      detail: validateOk ? '' : (result.stderr || result.stdout || '').trim().split('\n')[0],
-    })
+      const validateOk = result.status === 0
+      checks.push({
+        id: 'refs-validate',
+        label: 'reference consistency (validate refs)',
+        level: validateOk ? 'pass' : 'fail',
+        blocking: true,
+        hint: validateOk
+          ? ''
+          : 'Run `aief-init validate refs --fix` to auto-fix deterministic reference issues.',
+        detail: validateOk ? '' : (result.stderr || result.stdout || '').trim().split('\n')[0],
+      })
+    }
   }
 
   let passCount = 0
@@ -521,6 +536,8 @@ function runDoctor({ baseDir, json, profilePath }) {
       `${JSON.stringify(
         {
           projectRoot,
+          scope: profileOnly ? 'profile' : 'project',
+          profilePath: profilePathLabel,
           checks,
           summary: {
             pass: passCount,
@@ -534,7 +551,7 @@ function runDoctor({ baseDir, json, profilePath }) {
       )}\n`
     )
   } else {
-    process.stdout.write(`Doctor report for ${projectRoot}\n`)
+    process.stdout.write(`${profileOnly ? 'Profile-only doctor report' : 'Doctor report'} for ${projectRoot}\n`)
     for (const item of checks) {
       const tag =
         item.level === 'pass' ? '[PASS]' : item.level === 'warn' ? '[WARN]' : '[FAIL]'
@@ -552,7 +569,6 @@ function runDoctor({ baseDir, json, profilePath }) {
     process.exit(1)
   }
 }
-
 function ensureDir(dirPath, { dryRun } = {}) {
   if (dryRun) {
     process.stdout.write(`[dry-run] mkdir -p ${dirPath}\n`)
@@ -1662,7 +1678,7 @@ function main() {
     }
 
     if (opts.command === 'doctor') {
-      runDoctor({ baseDir, json: opts.json, profilePath: opts.profilePath })
+      runDoctor({ baseDir, json: opts.json, profilePath: opts.profilePath, profileOnly: opts.profileOnly })
       return
     }
 
