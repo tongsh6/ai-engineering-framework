@@ -332,7 +332,7 @@ function runDoctor({ baseDir, json }) {
           checks.push({
             id: finding.id,
             label: finding.message,
-            level: finding.level,
+            level: finding.level === 'error' ? 'fail' : 'warn',
             blocking: finding.level === 'error',
             hint: finding.level === 'error' ? 'Correct the Profile governance or conflicting facts before relying on this profile.' : 'Review the fact and record its source or resolve the conflict.',
           })
