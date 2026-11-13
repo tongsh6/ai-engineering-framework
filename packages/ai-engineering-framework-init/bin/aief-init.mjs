@@ -5,7 +5,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import Ajv from 'ajv'
+import Ajv2020 from 'ajv/dist/2020.js'
 import { parse as parseYaml } from 'yaml'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 
 const PROJECT_PROFILE_SCHEMA_PATH = path.resolve(__dirname, '../schemas/project-profile.schema.json')
 const projectProfileSchema = JSON.parse(fs.readFileSync(PROJECT_PROFILE_SCHEMA_PATH, 'utf8'))
-const profileAjv = new Ajv({ allErrors: true, strict: false })
+const profileAjv = new Ajv2020({ allErrors: true, strict: false })
 profileAjv.addFormat('date', {
   type: 'string',
   validate: (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
