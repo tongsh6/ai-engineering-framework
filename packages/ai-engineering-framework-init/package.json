@@ -19,6 +19,7 @@
   "files": [
     "bin/",
     "templates/",
+    "schemas/",
     "README.md"
   ],
   "repository": {
@@ -28,5 +29,9 @@
   "bugs": {
     "url": "https://github.com/tongsh6/ai-engineering-framework/issues"
   },
-  "homepage": "https://github.com/tongsh6/ai-engineering-framework#readme"
+  "homepage": "https://github.com/tongsh6/ai-engineering-framework#readme",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "yaml": "^2.5.1"
+  }
 }
