@@ -146,7 +146,7 @@ function printHelp() {
       '  aief-init new',
       '  aief-init retrofit --level L0',
       '  aief-init retrofit --level L0+',
-      '  aief-init doctor [--base-dir <path>]',
+      '  aief-init doctor [--base-dir <path>] [--profile-path <path>]',
       '  aief-init validate refs [--fix] [--base-dir <path>]',
       '  aief-init migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]',
       '',
@@ -154,6 +154,7 @@ function printHelp() {
       '  --level <L0|L0+|L1|L2|L3>   Migration level for retrofit (default: L0+)',
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
+      '  --profile-path <path> Profile path relative to the project root (default: context/PROJECT_PROFILE.yaml; doctor only)',
       '  --to-base-dir <path>  Migration target base directory (for migrate)',
       '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
       '  --no-root-agents     Skip writing AGENTS.md at repo root',
@@ -186,6 +187,7 @@ function parseArgs(argv) {
     fix: false,
     json: false,
     toBaseDir: undefined,
+    profilePath: undefined,
   }
 
   let start = 1
@@ -214,6 +216,11 @@ function parseArgs(argv) {
       const v = args[i + 1]
       if (!v) throw new Error('Missing value for --locale')
       opts.locale = v
+      i += 1
+    } else if (a === '--profile-path') {
+      const v = args[i + 1]
+      if (!v) throw new Error('Missing value for --profile-path')
+      opts.profilePath = v
       i += 1
     } else if (a === '--base-dir') {
       const v = args[i + 1]
@@ -254,11 +261,25 @@ function isFile(p) {
   }
 }
 
-function runDoctor({ baseDir, json }) {
+function resolveProjectRelativePath(projectRoot, input) {
+  const value = String(input || '').trim()
+  if (!value || path.isAbsolute(value) || /^[A-Za-z]:[\\\\/]/.test(value)) {
+    throw new Error('Profile path must be a non-empty project-relative path.')
+  }
+  const resolved = path.resolve(projectRoot, value)
+  const relative = path.relative(projectRoot, resolved)
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error('Profile path must stay inside the project root.')
+  }
+  return resolved
+}
+
+function runDoctor({ baseDir, json, profilePath }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
   const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
-  const projectProfilePath = path.join(projectRoot, 'context', 'PROJECT_PROFILE.yaml')
+  const resolvedProfilePath = resolveProjectRelativePath(projectRoot, profilePath || 'context/PROJECT_PROFILE.yaml')
+  const profilePathLabel = profilePath || 'context/PROJECT_PROFILE.yaml'
   const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
 
   const checks = []
@@ -281,7 +302,39 @@ function runDoctor({ baseDir, json }) {
 
   if (isFile(agentsPath)) {
     const agentsText = readText(agentsPath)
-    const hasProfileInstruction = agentsText.includes('PROJECT_PROFILE.yaml') &&
+    const hasProfileInstruction = agentsText.includes(profilePathLabel) || agentsText.includes(path.basename(profilePathLabel))
+    const hasOperatingContext = agentsText.toLowerCase().includes('project operating context')
+    checks.push({
+      id: 'agents-project-operating-context',
+      label: 'AGENTS.md loads project operating context',
+      level: hasProfileInstruction && hasOperatingContext ? 'pass' : 'warn',
+      blocking: false,
+      hint: hasProfileInstruction && hasOperatingContext ? '' : `Add the Project Operating Context entry rules and profile path (${profilePathLabel}) to AGENTS.md.`,
+    })
+  }
+
+  if (isFile(contextIndexPath)) {
+    const indexText = readText(contextIndexPath)
+    const hasProfileNavigation = indexText.includes(path.basename(profilePathLabel))
+    checks.push({
+      id: 'context-index-project-profile',
+      label: 'context/INDEX.md navigates to project profile',
+      level: hasProfileNavigation ? 'pass' : 'warn',
+      blocking: false,
+      hint: hasProfileNavigation ? '' : `Add ${profilePathLabel} to the context index.`,
+    })
+  }
+
+  checks.push({
+    id: 'entry-project-profile',
+    label: `project profile file: ${profilePathLabel}`,
+    level: isFile(resolvedProfilePath) ? 'pass' : 'fail',
+    blocking: true,
+    hint: `Create the Project Profile at ${profilePathLabel} using the AIEF Project Profile schema.`,
+  })
+
+  if (isFile(resolvedProfilePath)) {
+    const profileText = readText(resolvedProfilePath)
       agentsText.toLowerCase().includes('project operating context')
     checks.push({
       id: 'agents-project-operating-context',
@@ -306,14 +359,14 @@ function runDoctor({ baseDir, json }) {
 
   checks.push({
     id: 'entry-project-profile',
-    label: 'context/PROJECT_PROFILE.yaml entry file',
-    level: isFile(projectProfilePath) ? 'pass' : 'fail',
+    label: `project profile file: ${profilePathLabel}`,
+    level: isFile(resolvedProfilePath) ? 'pass' : 'fail',
     blocking: true,
-    hint: 'Run aief-init new or retrofit to create the project profile template.',
+    hint: `Create the Project Profile at ${profilePathLabel} using the AIEF Project Profile schema.`,
   })
 
-  if (isFile(projectProfilePath)) {
-    const profileText = readText(projectProfilePath)
+  if (isFile(resolvedProfilePath)) {
+    const profileText = readText(resolvedProfilePath)
     let profile
     try {
       profile = parseYaml(profileText)
@@ -1458,7 +1511,7 @@ function main() {
     }
 
     if (opts.command === 'doctor') {
-      runDoctor({ baseDir, json: opts.json })
+      runDoctor({ baseDir, json: opts.json, profilePath: opts.profilePath })
       return
     }
 
