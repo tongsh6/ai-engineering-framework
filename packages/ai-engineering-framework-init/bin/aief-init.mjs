@@ -181,9 +181,16 @@ function runDoctor({ baseDir, json }) {
       hint: hasProtocol ? '' : 'Check apiVersion, kind, and metadata.schemaVersion against the AIEF Project Profile contract.',
     })
     checks.push({
+      id: 'project-profile-provenance',
+      label: 'project profile provenance metadata',
+      level: /provenance:\\s*\\{\\s*\\}/.test(profileText) ? 'warn' : 'pass',
+      blocking: false,
+      hint: 'Record provenance for confirmed project facts using the Project Operating Context specification.',
+    })
+    checks.push({
       id: 'project-profile-unknowns',
       label: 'project profile contains unresolved values',
-      level: /:\\s*unknown\\b/.test(profileText) || /everReleased:\\s*null/.test(profileText) ? 'warn' : 'pass',
+      level: /:\s*unknown\b/.test(profileText) || /everReleased:\s*null/.test(profileText) ? 'warn' : 'pass',
       blocking: false,
       hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
     })
