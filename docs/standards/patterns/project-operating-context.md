@@ -15,7 +15,7 @@ Project Operating Context为 AI 提供项目级事实和决策约束。它回答
 
 ## 2. 唯一事实来源
 
-项目级画像唯一事实源为 `context/PROJECT_PROFILE.yaml`。
+项目级画像唯一事实源由项目根目录 AGENTS.md 指定。AIEF 标准初始化默认路径为 `context/PROJECT_PROFILE.yaml`。
 这是 AIEF 标准初始化的默认位置。对于已有明确 SSOT 目录约束的项目，可以在其既有权威位置保存同一 Profile 契约，并在 AGENTS.md 中明确唯一文件路径；不得为了遵循默认路径而新建平行 context 目录，也不得复制第二份画像。Schema 与字段治理规则不因文件位置改变。
 
 - `AGENTS.md` 只定义入口与消费规则，不复制画像字段。
@@ -201,7 +201,7 @@ pre_release 阶段：检查核心闭环、安装/部署、发布说明、数据�
 ## 8. Context Loading 与 Harness
 
 所有 Harness 统一遵循项目根目录 AGENTS.md：
-1. 读取 `context/PROJECT_PROFILE.yaml`。
+1. 读取 AGENTS.md 明确指定的 Profile 路径；标准初始化默认是 `context/PROJECT_PROFILE.yaml`。
 2. 读取本规范（若该规范已安装；否则遵循 AGENTS.md 中内嵌的基础规则）。
 3. 读取任务入口和任务文件。
 4. 按任务需要懒加载 business、tech、experience、specification 上下文。
