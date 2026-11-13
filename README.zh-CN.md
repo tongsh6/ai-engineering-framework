@@ -30,7 +30,7 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 - 项目规则在团队和工具之间统一
 - 可渐进接入（先最小可用，再按需扩展）
 
-## 它解决什么问题？
+## 项目全局状态与工程策略\n\nAIEF 提供 Project Operating Context，让 AI 区分个人工具、PoC、开源产品、内部系统和生产服务。生命周期只提供默认工程策略；已确认的数据责任和外部承诺优先。详见[项目运行上下文规范](docs/standards/patterns/project-operating-context.md)。\n\n## 它解决什么问题？
 
 在多数团队的日常 AI 开发里，常见问题是：
 
@@ -48,7 +48,7 @@ AIEF 关注的是稳定协作上下文，而不是让模型“更聪明”。
 
 Retrofit 等级速记：
 
-- `L0`：仅生成最小入口文件
+- `L0`：生成最小入口文件，并包含项目画像模板
 - `L0+`：`L0` + 自动生成仓库快照（推荐作为已有项目的接入起点）
 - `L1`：`L0+` + 骨架文档（业务、技术、工作流、标准规范存根）
 - `L2`：`L1` + 完整 Skill/Command/Agent 规范内容 + 经验管理目录结构
@@ -60,7 +60,7 @@ Retrofit 等级速记：
 npx --yes @tongsh6/aief-init@latest new --locale zh-CN
 ```
 
-这会生成 `AGENTS.md` 和 `context/INDEX.md`。
+这会生成 `AGENTS.md`、`context/INDEX.md` 和 `context/PROJECT_PROFILE.yaml`。画像初始值使用显式 `unknown`，需要由维护者确认项目性质、生命周期和责任，不让 AI 猜测。
 
 第 2 步 - 打开生成的 `AGENTS.md` 模板，填写：
 
