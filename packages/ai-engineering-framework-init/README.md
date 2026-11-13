@@ -41,6 +41,8 @@ Subcommands:
     migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]
 
 Notes:
-- It only writes AIEF entry files (AGENTS.md + context/*). It does not modify your existing code structure.
+- New and retrofit create context/PROJECT_PROFILE.yaml at every adoption level, including L0.
+- Retrofit preserves existing AGENTS.md, context/INDEX.md, Profile, and existing business/technical/experience context files.
+- It only writes AIEF entry/context assets. It does not modify your existing code structure.
 - By default it will not overwrite existing files. Use --force to overwrite.
 - Unsupported locale values fall back to zh-CN with a warning.

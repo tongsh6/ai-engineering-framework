@@ -10,7 +10,13 @@
 2. 不要求一次性补齐文档
 3. 先插入口，再逐步演进
 
-推荐最小可用（L0+）应生成：
+推荐最小可用（L0）应生成：
+
+    context/PROJECT_PROFILE.yaml
+
+画像应保留未知字段，不得自动猜测项目性质、生命周期、发布承诺和数据责任。若已有等价权威资料，先审计并确定唯一真源。
+
+推荐 L0+ 还会生成：
 
     context/tech/REPO_SNAPSHOT.md
 
@@ -21,6 +27,7 @@
 L0（5 分钟）：
 - 新增 AGENTS.md（可空，但要存在）
 - 新增 context/INDEX.md（可空，但要存在）
+- 新增 context/PROJECT_PROFILE.yaml（未知事实使用 unknown）
 
 L0+（再 5 分钟）：
 - 生成 context/tech/REPO_SNAPSHOT.md（用 templates/retrofit/ 初稿）
@@ -41,6 +48,8 @@ L2/L3（按需增强）：
 - L2：补齐 workflow、经验模板和 Skill/Command/Agent 规范
 - L3：引入跨切面模式并持续沉淀经验
 - 详见：`init/MIGRATION_LEVELS.md`
+
+Retrofit 不得覆盖已有 Profile、AGENTS.md、context/INDEX.md 或项目维护的 business/tech/experience 文档；仓库扫描结果只能作为候选事实，关键字段需要人工确认。
 
 完成标准：
 - 人能在 1 分钟内找到入口（AGENTS.md）

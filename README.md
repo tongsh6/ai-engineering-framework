@@ -30,6 +30,10 @@ Why teams adopt it:
 - Shared project rules across people and tools
 - Incremental adoption (start small, expand when needed)
 
+## Project Operating Context
+
+AIEF also provides a project-level operating profile so AI can distinguish a personal tool, an exploratory PoC, an open-source product, an internal system, and a production service. Lifecycle supplies default engineering policies; confirmed data responsibilities and external commitments take precedence. See [Project Operating Context](docs/standards/patterns/project-operating-context.md).
+
 ## The Problem
 
 Most teams using AI in daily development hit the same issues:
@@ -48,7 +52,7 @@ Default locale is `zh-CN`; pass `--locale en` if you want English templates.
 
 Level cheat sheet for retrofit:
 
-- `L0`: minimum entry files only
+- `L0`: minimum entry files, including the Project Profile starter
 - `L0+`: `L0` plus an auto-generated repo snapshot (recommended for existing projects)
 - `L1`: `L0+` plus scaffold skeleton docs (business, tech, workflow, standards stubs)
 - `L2`: `L1` plus full Skill/Command/Agent standards and experience management structure
@@ -60,7 +64,7 @@ Level cheat sheet for retrofit:
 npx --yes @tongsh6/aief-init@latest new --locale en
 ```
 
-This creates `AGENTS.md` and `context/INDEX.md`.
+This creates `AGENTS.md`, `context/INDEX.md`, and `context/PROJECT_PROFILE.yaml`. The profile starts with explicit `unknown` values; confirm project identity, lifecycle, and commitments instead of asking AI to guess.
 
 Step 2 - Open the generated `AGENTS.md` template and fill in:
 

@@ -139,6 +139,7 @@ function runDoctor({ baseDir, json }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
   const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
+  const projectProfilePath = path.join(projectRoot, 'context', 'PROJECT_PROFILE.yaml')
   const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
 
   const checks = []
@@ -158,6 +159,67 @@ function runDoctor({ baseDir, json }) {
     blocking: true,
     hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold context index.',
   })
+
+  if (isFile(agentsPath)) {
+    const agentsText = readText(agentsPath)
+    const hasProfileInstruction = agentsText.includes('PROJECT_PROFILE.yaml') &&
+      agentsText.toLowerCase().includes('project operating context')
+    checks.push({
+      id: 'agents-project-operating-context',
+      label: 'AGENTS.md loads project operating context',
+      level: hasProfileInstruction ? 'pass' : 'warn',
+      blocking: false,
+      hint: hasProfileInstruction ? '' : 'Add the Project Operating Context entry rules to AGENTS.md.',
+    })
+  }
+
+  if (isFile(contextIndexPath)) {
+    const indexText = readText(contextIndexPath)
+    const hasProfileNavigation = indexText.includes('PROJECT_PROFILE.yaml')
+    checks.push({
+      id: 'context-index-project-profile',
+      label: 'context/INDEX.md navigates to project profile',
+      level: hasProfileNavigation ? 'pass' : 'warn',
+      blocking: false,
+      hint: hasProfileNavigation ? '' : 'Add PROJECT_PROFILE.yaml to the context index.',
+    })
+  }
+
+  checks.push({
+    id: 'entry-project-profile',
+    label: 'context/PROJECT_PROFILE.yaml entry file',
+    level: isFile(projectProfilePath) ? 'pass' : 'fail',
+    blocking: true,
+    hint: 'Run aief-init new or retrofit to create the project profile template.',
+  })
+
+  if (isFile(projectProfilePath)) {
+    const profileText = readText(projectProfilePath)
+    const hasProtocol = profileText.includes('apiVersion: aief.dev/project-profile/v1') &&
+      profileText.includes('kind: ProjectProfile') &&
+      profileText.includes('schemaVersion:')
+    checks.push({
+      id: 'project-profile-protocol',
+      label: 'project profile protocol markers',
+      level: hasProtocol ? 'pass' : 'fail',
+      blocking: true,
+      hint: hasProtocol ? '' : 'Check apiVersion, kind, and metadata.schemaVersion against the AIEF Project Profile contract.',
+    })
+    checks.push({
+      id: 'project-profile-provenance',
+      label: 'project profile provenance metadata',
+      level: /provenance:\s*\{\s*\}/.test(profileText) ? 'warn' : 'pass',
+      blocking: false,
+      hint: 'Record provenance for confirmed project facts using the Project Operating Context specification.',
+    })
+    checks.push({
+      id: 'project-profile-unknowns',
+      label: 'project profile contains unresolved values',
+      level: /:\s*unknown\b/.test(profileText) || /everReleased:\s*null/.test(profileText) ? 'warn' : 'pass',
+      blocking: false,
+      hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
+    })
+  }
 
   if (!isFile(scriptPath)) {
     checks.push({
@@ -501,6 +563,41 @@ function resolveLocale(input) {
 }
 
 function buildMinimalTemplates(locale, contextEntry) {
+  const profile = [
+    'apiVersion: aief.dev/project-profile/v1',
+    'kind: ProjectProfile',
+    '',
+    'metadata:',
+    '  name: example-project',
+    '  schemaVersion: "1.0"',
+    '',
+    'project:',
+    '  identity:',
+    '    name: Example Project',
+    '    description: Replace with a concise project description.',
+    '    ownership: unknown',
+    '    purposes: [unknown]',
+    '    productForms: [unknown]',
+    '    audiences: [unknown]',
+    '    horizon: unknown',
+    '  lifecycle:',
+    '    stage: unknown',
+    '    operatingMode: unknown',
+    '  release:',
+    '    everReleased: null',
+    '    channel: unknown',
+    '  commitments:',
+    '    users: { scope: unknown, support: unknown }',
+    '    deployment: { scope: unknown }',
+    '    data: { classification: unknown, retention: unknown, recovery: unknown }',
+    '    compatibility: { publicApi: unknown, internalApi: unknown, databaseSchema: unknown, userData: unknown }',
+    '    maintenance: { commitment: unknown }',
+    '  constraints: []',
+    '',
+    'governance:',
+    '  provenance: {}',
+    '  pendingChanges: []',
+  ].join('\n');
 
   if (locale === 'en') {
     return {
@@ -508,6 +605,14 @@ function buildMinimalTemplates(locale, contextEntry) {
         '# [Project Name] AI Guide',
         '',
         'This is the project-level entry for AI-assisted engineering.',
+        '',
+        '## Project Operating Context',
+        '',
+        'Before engineering decisions, read context/PROJECT_PROFILE.yaml.',
+        'Follow docs/standards/patterns/project-operating-context.md when installed.',
+        'Never interpret unknown as none. Lifecycle provides defaults only; data responsibilities and confirmed external commitments take precedence.',
+        'Never change human-confirmed fields autonomously. Task adjustments must be scoped and must not bypass data or security constraints.',
+        'The project profile is the single source of truth for project-level facts.',
         '',
         'Language:',
         '- Use Chinese for communication by default',
@@ -524,12 +629,15 @@ function buildMinimalTemplates(locale, contextEntry) {
         '',
         'Context Entry:',
         `- ${contextEntry}`,
+        '- context/PROJECT_PROFILE.yaml',
         '',
       ].join('\n'),
       index: [
         '# Context Index',
         '',
         'This is the navigation entry for long-term project context.',
+        '',
+        '- PROJECT_PROFILE.yaml: project identity, lifecycle, and commitments. Read before engineering decisions.',
         '',
         'Directories:',
         '',
@@ -539,6 +647,7 @@ function buildMinimalTemplates(locale, contextEntry) {
         '        experience/',
         '',
       ].join('\n'),
+      profile,
     }
   }
 
@@ -547,6 +656,14 @@ function buildMinimalTemplates(locale, contextEntry) {
       '# [项目名称] AI 编程指南',
       '',
       '这是项目级 AI 协作入口。',
+      '',
+      '## Project Operating Context',
+      '',
+      '进行工程决策前，必须读取 context/PROJECT_PROFILE.yaml。',
+      '遵循 docs/standards/patterns/project-operating-context.md（若已安装）。',
+      '不得将 unknown 当作 none；生命周期只提供默认策略，数据责任和已确认外部承诺优先。',
+      '不得自行修改人工确认字段；任务级调整必须限定作用域，不能绕过数据和安全约束。',
+      '项目画像是项目级事实的唯一来源。',
       '',
       '语言规则：',
       '- 交流默认使用中文',
@@ -563,12 +680,15 @@ function buildMinimalTemplates(locale, contextEntry) {
       '',
       '上下文入口：',
       `- ${contextEntry}`,
+      '- context/PROJECT_PROFILE.yaml',
       '',
     ].join('\n'),
     index: [
       '# 上下文索引',
       '',
       '这是项目长期上下文的导航入口。',
+      '',
+      '- PROJECT_PROFILE.yaml：项目身份、生命周期和责任约束；工程决策前必须读取。',
       '',
       '目录结构：',
       '',
@@ -578,6 +698,7 @@ function buildMinimalTemplates(locale, contextEntry) {
       '        experience/',
       '',
     ].join('\n'),
+    profile,
   }
 }
 
@@ -617,7 +738,7 @@ function buildScaffoldTemplates(locale) {
     'docs/standards/agent-spec.md': '# Agent 规范\n\n定义角色边界、职责与质量要求。\n',
     'docs/standards/patterns/phase-router.md': '# 模式：阶段路由\n\n将任务信号映射到对应工作流阶段。\n',
     'docs/standards/patterns/experience-mgmt.md': '# 模式：经验管理\n\n沉淀、索引与复用项目经验。\n',
-    'docs/standards/patterns/context-loading.md': '# 模式：上下文加载\n\n按任务最小化加载相关上下文。\n',
+    'docs/standards/patterns/context-loading.md': '# 模式：上下文加载\n\n工程决策前先读取 context/PROJECT_PROFILE.yaml，识别项目生命周期和责任约束；再按任务加载业务、技术和经验上下文。Phase Router 负责任务阶段，Project Operating Context 负责项目级工程策略。\n',
     'templates/minimal/AGENTS.md': '# AI 编程指南模板\n\n项目级 AI 入口模板起点。\n',
     'templates/minimal/context/INDEX.md': '# 上下文索引模板\n\n上下文导航模板起点。\n',
   }
@@ -895,20 +1016,24 @@ function buildExpertTemplates(locale) {
       'docs/standards/patterns/context-loading.md': [
         '# Pattern: Context Loading',
         '',
-        '> Load only the context relevant to the current task — no more, no less.',
+        '> Load project operating context before task-specific knowledge.',
         '',
-        '## Loading Strategy',
+        '## Mandatory Project Context',
+        '',
+        '- Read `context/PROJECT_PROFILE.yaml` before engineering decisions.',
+        '- Follow the Project Operating Context rules in AGENTS.md.',
+        '- Never interpret unknown as none; preserve confirmed commitments.',
+        '',
+        '## Task-specific Loading',
         '',
         '| Task Involves | Auto-load |',
         '|---------------|-----------|',
         '| Domain logic | `context/business/domain-model.md` |',
-        '| API development | `context/tech/architecture.md` |',
+        '| API development | `context/tech/api/` and architecture docs |',
+        '| Data changes | Project data commitments and database conventions |',
         '| Any implementation | `context/experience/INDEX.md` (search for matches) |',
         '',
-        '## How to Apply',
-        '',
-        'Reference this pattern in your `AGENTS.md` under the auto-behavior section.',
-        'Specify which context files map to which task types.',
+        'Phase Router selects workflow phases; Project Operating Context selects project-level engineering defaults.',
       ].join('\n'),
       '.ai-adapters/README.md': [
         '# AI Adapter Configurations',
@@ -1031,7 +1156,7 @@ function buildExpertTemplates(locale) {
   }
 }
 
-function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
+function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents, preserveExisting = false } = {}) {
   const base = normalizeBaseDir(baseDir)
   const shouldWriteRootAgents = typeof writeRootAgents === 'boolean' ? writeRootAgents : !base
   const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
@@ -1043,14 +1168,24 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
   if (base) {
-    writeFile(repoPath(base, 'AGENTS.md'), `${baseTemplates.agents}\n`, { force, dryRun })
+    const target = repoPath(base, 'AGENTS.md')
+    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
   if (shouldWriteRootAgents) {
-    writeFile(repoPath('', 'AGENTS.md'), `${rootTemplates.agents}\n`, { force, dryRun })
+    const target = repoPath('', 'AGENTS.md')
+    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
-  writeFile(repoPath(base, 'context/INDEX.md'), `${baseTemplates.index}\n`, { force, dryRun })
+  const indexTarget = repoPath(base, 'context/INDEX.md')
+  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing ${indexTarget}\n`)
+
+  const profileTarget = repoPath(base, 'context/PROJECT_PROFILE.yaml')
+  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\n`)
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
@@ -1067,7 +1202,7 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
 
 function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents } = {}) {
   const base = normalizeBaseDir(baseDir)
-  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents })
+  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents, preserveExisting: true })
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1' && level !== 'L2' && level !== 'L3') {
@@ -1076,12 +1211,19 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
 
   const snapshotPath = repoPath(base, 'context/tech/REPO_SNAPSHOT.md')
   const snapshotContent = formatRepoSnapshot(process.cwd(), locale)
-  writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  if (!exists(snapshotPath)) writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  else process.stdout.write('[skip] preserve existing ' + snapshotPath + '\n')
 
   if (level === 'L1' || level === 'L2' || level === 'L3') {
     const scaffoldTemplates = buildScaffoldTemplates(locale)
     for (const [targetPath, content] of Object.entries(scaffoldTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      const destination = repoPath(base, targetPath)
+      const isProjectKnowledge = /^context\/(business|tech|experience)\//.test(targetPath)
+      if (exists(destination) && (isProjectKnowledge || !force)) {
+        process.stdout.write('[skip] preserve existing ' + destination + '\n')
+        continue
+      }
+      writeFile(destination, content, { force, dryRun })
     }
 
     if (base) {
@@ -1092,7 +1234,12 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
   if (level === 'L2' || level === 'L3') {
     const advancedTemplates = buildAdvancedTemplates(locale)
     for (const [targetPath, content] of Object.entries(advancedTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      const destination = repoPath(base, targetPath)
+      if (exists(destination) && targetPath.startsWith('context/')) {
+        process.stdout.write('[skip] preserve existing ' + destination + '\n')
+        continue
+      }
+      writeFile(destination, content, { force, dryRun })
     }
     ensureDir(repoPath(base, 'context/experience/lessons'), { dryRun })
     ensureDir(repoPath(base, 'context/experience/reports'), { dryRun })

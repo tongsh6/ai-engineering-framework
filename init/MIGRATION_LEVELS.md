@@ -1,10 +1,11 @@
 # 迁移等级说明
 
-迁移等级用于 Existing Project Init（Retrofit），用于降低接入阻力。
+迁移等级用于 Existing Project Init（Retrofit），用于降低接入阻力。它表示 AIEF 接入深度，不代表项目生命周期或成熟度。
 
-L0（插入口，不要求内容）：
+L0（基础入口）：
 - 新增 AGENTS.md
 - 新增 context/INDEX.md
+- 新增 context/PROJECT_PROFILE.yaml（未知事实显式使用 unknown，不让 AI 猜测）
 
 L0+（L0 + 仓库快照）：
 - 在 L0 基础上，自动生成 context/tech/REPO_SNAPSHOT.md

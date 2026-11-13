@@ -88,6 +88,7 @@ test('new creates AGENTS.md and context/INDEX.md', () => {
     assert.equal(r.status, 0, `stderr: ${r.stderr}`)
     assert.ok(fs.existsSync(path.join(dir, 'AGENTS.md')), 'AGENTS.md missing')
     assert.ok(fs.existsSync(path.join(dir, 'context', 'INDEX.md')), 'context/INDEX.md missing')
+    assert.ok(fs.existsSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml')), 'PROJECT_PROFILE.yaml missing')
   } finally {
     cleanup(dir)
   }
@@ -124,6 +125,7 @@ test('retrofit --level L0 creates AGENTS.md and context/INDEX.md', () => {
     assert.equal(r.status, 0, `stderr: ${r.stderr}`)
     assert.ok(fs.existsSync(path.join(dir, 'AGENTS.md')))
     assert.ok(fs.existsSync(path.join(dir, 'context', 'INDEX.md')))
+    assert.ok(fs.existsSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml')))
   } finally {
     cleanup(dir)
   }
@@ -198,6 +200,7 @@ test('doctor on empty directory exits non-zero with actionable hints', () => {
     assert.notEqual(r.status, 0)
     assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
     assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
+    assert.match(r.stdout, /\[FAIL\] context\/PROJECT_PROFILE\.yaml entry file/)
     assert.match(r.stdout, /hint:/)
   } finally {
     cleanup(dir)
@@ -211,9 +214,9 @@ test('doctor --json returns structured report on empty directory', () => {
     assert.notEqual(r.status, 0)
     const payload = JSON.parse(r.stdout)
     assert.equal(typeof payload.projectRoot, 'string')
-    assert.equal(payload.summary.fail, 2)
+    assert.equal(payload.summary.fail, 3)
     assert.equal(payload.summary.warn, 1)
-    assert.equal(payload.summary.blockingFail, 2)
+    assert.equal(payload.summary.blockingFail, 3)
   } finally {
     cleanup(dir)
   }
@@ -229,6 +232,8 @@ test('doctor after L0 retrofit exits 0 and warns about missing scripts/aief.mjs'
     assert.equal(r2.status, 0, `stdout: ${r2.stdout}\nstderr: ${r2.stderr}`)
     assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
     assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)
+    assert.match(r2.stdout, /\[PASS\] context\/PROJECT_PROFILE\.yaml entry file/)
+    assert.match(r2.stdout, /\[WARN\] project profile contains unresolved values/)
     assert.match(r2.stdout, /\[WARN\] scripts\/aief\.mjs available/)
   } finally {
     cleanup(dir)
@@ -245,6 +250,8 @@ test('doctor --base-dir checks scoped AIEF directory', () => {
     assert.equal(r2.status, 0, `stdout: ${r2.stdout}\nstderr: ${r2.stderr}`)
     assert.match(r2.stdout, /\[PASS\] AGENTS\.md entry file/)
     assert.match(r2.stdout, /\[PASS\] context\/INDEX\.md entry file/)
+    assert.match(r2.stdout, /\[PASS\] context\/PROJECT_PROFILE\.yaml entry file/)
+    assert.match(r2.stdout, /\[WARN\] project profile contains unresolved values/)
     assert.match(r2.stdout, /\[WARN\] scripts\/aief\.mjs available/)
   } finally {
     cleanup(dir)
@@ -258,6 +265,26 @@ test('canonical doctor on empty directory exits non-zero', () => {
     assert.notEqual(r.status, 0)
     assert.match(r.stdout, /\[FAIL\] AGENTS\.md entry file/)
     assert.match(r.stdout, /\[FAIL\] context\/INDEX\.md entry file/)
+  } finally {
+    cleanup(dir)
+  }
+})
+
+
+test('retrofit preserves existing project profile and user context even with --force', () => {
+  const dir = makeTmp()
+  try {
+    fs.mkdirSync(path.join(dir, 'context', 'business'), { recursive: true })
+    fs.writeFileSync(path.join(dir, 'AGENTS.md'), '# Maintainer AGENTS\\n')
+    fs.writeFileSync(path.join(dir, 'context', 'INDEX.md'), '# Maintainer Index\\n')
+    fs.writeFileSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml'), 'maintainer-profile: keep\\n')
+    fs.writeFileSync(path.join(dir, 'context', 'business', 'domain-model.md'), '# Domain owned by project\\n')
+    const r = run(['retrofit', '--level', 'L1', '--locale', 'en', '--force'], { cwd: dir })
+    assert.equal(r.status, 0, `stderr: ${r.stderr}`)
+    assert.equal(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8'), '# Maintainer AGENTS\\n')
+    assert.equal(fs.readFileSync(path.join(dir, 'context', 'INDEX.md'), 'utf8'), '# Maintainer Index\\n')
+    assert.equal(fs.readFileSync(path.join(dir, 'context', 'PROJECT_PROFILE.yaml'), 'utf8'), 'maintainer-profile: keep\\n')
+    assert.equal(fs.readFileSync(path.join(dir, 'context', 'business', 'domain-model.md'), 'utf8'), '# Domain owned by project\\n')
   } finally {
     cleanup(dir)
   }
