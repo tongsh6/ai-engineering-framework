@@ -1516,9 +1516,12 @@ function initMinimal({
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
   ensureDir(repoPath(base, 'context/experience'), { dryRun })
 
-  if (exists(bKeep)) copyFile(bKeep, repoPath(base, 'context/business/.gitkeep'), { force, dryRun })
-  if (exists(tKeep)) copyFile(tKeep, repoPath(base, 'context/tech/.gitkeep'), { force, dryRun })
-  if (exists(eKeep)) copyFile(eKeep, repoPath(base, 'context/experience/.gitkeep'), { force, dryRun })
+  const businessKeepTarget = repoPath(base, 'context/business/.gitkeep')
+  const techKeepTarget = repoPath(base, 'context/tech/.gitkeep')
+  const experienceKeepTarget = repoPath(base, 'context/experience/.gitkeep')
+  if (exists(bKeep) && !exists(businessKeepTarget)) copyFile(bKeep, businessKeepTarget, { force, dryRun })
+  if (exists(tKeep) && !exists(techKeepTarget)) copyFile(tKeep, techKeepTarget, { force, dryRun })
+  if (exists(eKeep) && !exists(experienceKeepTarget)) copyFile(eKeep, experienceKeepTarget, { force, dryRun })
 
   if (base) {
     ensureDir(repoPath(base, 'scripts'), { dryRun })
