@@ -67,6 +67,26 @@ test('new creates a project profile and operating-context entry in both locales'
   }
 })
 
+
+test('new --base-dir with --root-agents uses the scoped profile path in both locales', () => {
+  for (const locale of ['en', 'zh-CN']) {
+    const dir = makeTmp()
+    try {
+      const r = run(['new', '--base-dir', 'AIEF', '--root-agents', '--locale', locale], { cwd: dir })
+      assert.equal(r.status, 0, `stderr: ${r.stderr}`)
+
+      const rootAgents = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8')
+      const scopedAgents = fs.readFileSync(path.join(dir, 'AIEF', 'AGENTS.md'), 'utf8')
+      assert.match(rootAgents, /AIEF\/context\/PROJECT_PROFILE\.yaml/)
+      assert.match(rootAgents, /AIEF\/docs\/standards\/patterns\/project-operating-context\.md/)
+      assert.match(scopedAgents, /context\/PROJECT_PROFILE\.yaml/)
+      assert.ok(fs.existsSync(path.join(dir, 'AIEF', 'context', 'PROJECT_PROFILE.yaml')))
+    } finally {
+      cleanup(dir)
+    }
+  }
+})
+
 test('retrofit L0 creates the profile without requiring higher adoption levels', () => {
   const dir = makeTmp()
   try {
