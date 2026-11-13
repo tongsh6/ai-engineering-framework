@@ -121,6 +121,77 @@ test('new --base-dir with --root-agents uses the scoped profile path in both loc
   }
 })
 
+
+test('retrofit reuses an existing custom profile SSOT declared by AGENTS.md', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+
+    const oldProfile = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
+    const customRelativePath = 'docs/engineering/project-profile.yaml'
+    const customProfile = path.join(dir, customRelativePath)
+    fs.mkdirSync(path.dirname(customProfile), { recursive: true })
+    fs.renameSync(oldProfile, customProfile)
+
+    const agentsPath = path.join(dir, 'AGENTS.md')
+    let agents = fs.readFileSync(agentsPath, 'utf8')
+    agents = agents.replace('Profile: `context/PROJECT_PROFILE.yaml`', `Profile: \`${customRelativePath}\``)
+    agents = agents.replace('Specification: `docs/standards/patterns/project-operating-context.md`', 'Specification: `docs/standards/patterns/project-operating-context.md`')
+    fs.writeFileSync(agentsPath, agents)
+
+    const indexPath = path.join(dir, 'context', 'INDEX.md')
+    let index = fs.readFileSync(indexPath, 'utf8')
+    index = index.replace('[PROJECT_PROFILE.yaml](PROJECT_PROFILE.yaml)', '[project-profile.yaml](../docs/engineering/project-profile.yaml)')
+    fs.writeFileSync(indexPath, index)
+
+    const originalProfile = fs.readFileSync(customProfile, 'utf8')
+    const retrofit = run(['retrofit', '--level', 'L0'], { cwd: dir })
+    assert.equal(retrofit.status, 0, `stdout: ${retrofit.stdout} stderr: ${retrofit.stderr}`)
+    assert.ok(fs.existsSync(customProfile))
+    assert.ok(!fs.existsSync(oldProfile))
+    assert.equal(fs.readFileSync(customProfile, 'utf8'), originalProfile)
+
+    const doctor = run(['doctor', '--profile-path', customRelativePath, '--json'], { cwd: dir })
+    assert.equal(doctor.status, 0, `stdout: ${doctor.stdout} stderr: ${doctor.stderr}`)
+    const payload = JSON.parse(doctor.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-schema' && item.level === 'pass'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor resolves constraint provenance by stable constraint ID address', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    const profilePath = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
+    let profile = fs.readFileSync(profilePath, 'utf8')
+    profile = profile.replace('  constraints: []', [
+      '  constraints:',
+      '    - id: preserve-user-content',
+      '      statement: Preserve real user-created content',
+      '      scope: project_wide',
+    ].join('\\n'))
+    profile = profile.replace('  provenance: {}', [
+      '  provenance:',
+      '    "/project/constraints/@preserve-user-content":',
+      '      status: confirmed',
+      '      source:',
+      '        type: maintainer_confirmation',
+      '      confirmedAt: "2026-11-13"',
+    ].join('\\n'))
+    fs.writeFileSync(profilePath, profile)
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(!payload.checks.some((item) => item.id === 'profile-constraint-unconfirmed'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
 test('retrofit L0 creates the profile without requiring higher adoption levels', () => {
   const dir = makeTmp()
   try {
