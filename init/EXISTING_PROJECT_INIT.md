@@ -14,7 +14,7 @@
 
     context/PROJECT_PROFILE.yaml
 
-画像应保留未知字段，不得自动猜测项目性质、生命周期、发布承诺和数据责任。若已有等价权威资料，先审计并确定唯一真源。
+画像应保留未知字段，不得自动猜测项目性质、生命周期、发布承诺和数据责任。若已有等价权威资料，先审计并确定唯一真源。若现有 `AGENTS.md` 已声明自定义 Profile 路径，Retrofit 会复用该路径，不会额外创建默认画像；无法自动识别时使用 `--profile-path <path>` 明确指定。
 
 推荐 L0+ 还会生成：
 
@@ -41,6 +41,7 @@ L0+（再 5 分钟）：
 可选：无拷贝前置的一键运行（推荐用于推广/接入）：
 - npx --yes @tongsh6/aief-init@latest retrofit --level L0
 - npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+- npx --yes @tongsh6/aief-init@latest retrofit --level L0 --profile-path docs/engineering/project-profile.yaml
 
 L1（按需，通常 1-2 小时内可完成）：
 - context/business/ 一页业务说明
