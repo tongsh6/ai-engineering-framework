@@ -55,6 +55,13 @@ function readJsonPointer(target, pointer) {
   }, target)
 }
 
+function containsUnknownValue(value) {
+  if (value === 'unknown') return true
+  if (Array.isArray(value)) return value.some(containsUnknownValue)
+  if (value && typeof value === 'object') return Object.values(value).some(containsUnknownValue)
+  return false
+}
+
 function inspectProjectProfileSemantics(profile) {
   const findings = []
   const provenance = profile.governance?.provenance ?? {}
@@ -105,6 +112,26 @@ function inspectProjectProfileSemantics(profile) {
       level: 'error',
       message: 'Project constraint IDs must be unique.',
     })
+  }
+
+  for (const constraint of profile.project?.constraints ?? []) {
+    const pointer = `/project/constraints/${constraint.id}`
+    const entry = provenance[pointer]
+    if (!entry || entry.status !== 'confirmed') {
+      findings.push({
+        id: 'profile-constraint-unconfirmed',
+        level: 'warn',
+        message: `Human-confirmed constraint ${constraint.id} has no confirmed provenance.`,
+      })
+      continue
+    }
+    if (!['maintainer_confirmation', 'user_instruction'].includes(entry.source?.type)) {
+      findings.push({
+        id: 'profile-constraint-invalid-source',
+        level: 'error',
+        message: `Human-confirmed constraint ${constraint.id} must cite maintainer_confirmation or user_instruction.`,
+      })
+    }
   }
 
   const data = profile.project?.commitments?.data
@@ -393,7 +420,7 @@ function runDoctor({ baseDir, json, profilePath }) {
         checks.push({
           id: 'project-profile-unknowns',
           label: 'project profile contains unresolved values',
-          level: /:\s*unknown\b/.test(profileText) || /everReleased:\s*null/.test(profileText) ? 'warn' : 'pass',
+          level: containsUnknownValue(profile) || profile.project?.release?.everReleased === null ? 'warn' : 'pass',
           blocking: false,
           hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
         })
