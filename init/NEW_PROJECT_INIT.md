@@ -20,6 +20,7 @@
     AGENTS.md
     context/
         INDEX.md
+        PROJECT_PROFILE.yaml
         business/
         tech/
         experience/
@@ -30,7 +31,6 @@
    - 项目一句话介绍
    - 核心约束（例如：目录边界、关键规则）
    - 常用命令（build/test/run）
-4. 由维护者确认 PROJECT_PROFILE.yaml 中的关键字段；未知信息保留 unknown，不让 AI 猜测。
 3. 只要目录与入口存在即可结束初始化
 
 可选：用脚本一键生成（仅写入 AIEF 文件，不触碰业务代码）：
