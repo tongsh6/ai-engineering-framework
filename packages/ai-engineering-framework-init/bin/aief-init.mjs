@@ -1184,7 +1184,8 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
 
   const snapshotPath = repoPath(base, 'context/tech/REPO_SNAPSHOT.md')
   const snapshotContent = formatRepoSnapshot(process.cwd(), locale)
-  writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  if (!exists(snapshotPath)) writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing ${snapshotPath}\\n`)
 
   if (level === 'L1' || level === 'L2' || level === 'L3') {
     const scaffoldTemplates = buildScaffoldTemplates(locale)
@@ -1206,7 +1207,12 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
   if (level === 'L2' || level === 'L3') {
     const advancedTemplates = buildAdvancedTemplates(locale)
     for (const [targetPath, content] of Object.entries(advancedTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      const destination = repoPath(base, targetPath)
+      if (exists(destination) && targetPath.startsWith('context/')) {
+        process.stdout.write(`[skip] preserve existing ${destination}\\n`)
+        continue
+      }
+      writeFile(destination, content, { force, dryRun })
     }
     ensureDir(repoPath(base, 'context/experience/lessons'), { dryRun })
     ensureDir(repoPath(base, 'context/experience/reports'), { dryRun })
