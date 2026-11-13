@@ -19,6 +19,7 @@
 推荐接入方式（无拷贝前置）：
 - New Project: npx --yes @tongsh6/aief-init@latest new
 - Existing Project (Retrofit): npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+- Existing Project with custom Profile SSOT: add `--profile-path <path>`
 
 等级说明：
 - Existing Project 支持 `L0`、`L0+`、`L1`、`L2`、`L3`
