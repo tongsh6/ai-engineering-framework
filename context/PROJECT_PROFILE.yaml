@@ -2,13 +2,13 @@ apiVersion: aief.dev/project-profile/v1
 kind: ProjectProfile
 
 metadata:
-  name: example-project
+  name: ai-engineering-framework
   schemaVersion: "1.0"
 
 project:
   identity:
-    name: Example Project
-    description: Replace with a concise project description.
+    name: AI Engineering Framework
+    description: A tool-agnostic project context framework for AI-assisted engineering.
     ownership: unknown
     purposes:
       - unknown
