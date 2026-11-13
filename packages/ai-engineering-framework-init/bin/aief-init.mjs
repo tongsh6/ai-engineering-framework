@@ -565,7 +565,7 @@ function buildMinimalTemplates(locale, contextEntry) {
     'governance:',
     '  provenance: {}',
     '  pendingChanges: []',
-  ].join('\\n');
+  ].join('\n');
 
   if (locale === 'en') {
     return {
@@ -599,7 +599,7 @@ function buildMinimalTemplates(locale, contextEntry) {
         `- ${contextEntry}`,
         '- context/PROJECT_PROFILE.yaml',
         '',
-      ].join('\\n'),
+      ].join('\n'),
       index: [
         '# Context Index',
         '',
@@ -615,7 +615,7 @@ function buildMinimalTemplates(locale, contextEntry) {
         '        tech/',
         '        experience/',
         '',
-      ].join('\\n'),
+      ].join('\n'),
       profile,
     }
   }
@@ -651,7 +651,7 @@ function buildMinimalTemplates(locale, contextEntry) {
       `- ${contextEntry}`,
       '- context/PROJECT_PROFILE.yaml',
       '',
-    ].join('\\n'),
+    ].join('\n'),
     index: [
       '# 上下文索引',
       '',
@@ -667,7 +667,7 @@ function buildMinimalTemplates(locale, contextEntry) {
       '        tech/',
       '        experience/',
       '',
-    ].join('\\n'),
+    ].join('\n'),
     profile,
   }
 }
