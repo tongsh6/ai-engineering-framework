@@ -5,9 +5,155 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import Ajv2020 from 'ajv/dist/2020.js'
+import { parse as parseYaml } from 'yaml'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+const PROJECT_PROFILE_SCHEMA_PATH = path.resolve(__dirname, '../schemas/project-profile.schema.json')
+const projectProfileSchema = JSON.parse(fs.readFileSync(PROJECT_PROFILE_SCHEMA_PATH, 'utf8'))
+const profileAjv = new Ajv2020({ allErrors: true, strict: false })
+profileAjv.addFormat('date', {
+  type: 'string',
+  validate: (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
+})
+profileAjv.addFormat('date-time', {
+  type: 'string',
+  validate: (value) => /^\d{4}-\d{2}-\d{2}T/.test(value) && !Number.isNaN(Date.parse(value)),
+})
+const validateProjectProfile = profileAjv.compile(projectProfileSchema)
+
+const HUMAN_CONFIRMED_PROFILE_PATHS = [
+  '/project/identity/name',
+  '/project/identity/description',
+  '/project/identity/ownership',
+  '/project/identity/purposes',
+  '/project/identity/productForms',
+  '/project/identity/audiences',
+  '/project/identity/horizon',
+  '/project/lifecycle/stage',
+  '/project/release/everReleased',
+  '/project/release/channel',
+  '/project/commitments/users/scope',
+  '/project/commitments/users/support',
+  '/project/commitments/deployment/scope',
+  '/project/commitments/data/classification',
+  '/project/commitments/data/retention',
+  '/project/commitments/data/recovery',
+  '/project/commitments/compatibility/publicApi',
+  '/project/commitments/compatibility/internalApi',
+  '/project/commitments/compatibility/databaseSchema',
+  '/project/commitments/compatibility/userData',
+  '/project/commitments/maintenance/commitment',
+]
+
+function readJsonPointer(target, pointer) {
+  return pointer.split('/').slice(1).reduce((value, part) => {
+    if (value === null || value === undefined) return undefined
+    return value[part.replace(/~1/g, '/').replace(/~0/g, '~')]
+  }, target)
+}
+
+function containsUnknownValue(value) {
+  if (value === 'unknown') return true
+  if (Array.isArray(value)) return value.some(containsUnknownValue)
+  if (value && typeof value === 'object') return Object.values(value).some(containsUnknownValue)
+  return false
+}
+
+function inspectProjectProfileSemantics(profile) {
+  const findings = []
+  const provenance = profile.governance?.provenance ?? {}
+  const unresolved = (value) =>
+    value === undefined ||
+    value === null ||
+    value === 'unknown' ||
+    (Array.isArray(value) && (value.length === 0 || value.includes('unknown')))
+
+  for (const pointer of HUMAN_CONFIRMED_PROFILE_PATHS) {
+    const value = readJsonPointer(profile, pointer)
+    if (unresolved(value)) continue
+    const entry = provenance[pointer]
+    if (!entry || entry.status !== 'confirmed') {
+      findings.push({
+        id: 'profile-human-fact-unconfirmed',
+        level: 'warn',
+        message: `Human-confirmed field ${pointer} has no confirmed provenance.`,
+      })
+      continue
+    }
+    if (!['maintainer_confirmation', 'user_instruction'].includes(entry.source?.type)) {
+      findings.push({
+        id: 'profile-human-fact-invalid-source',
+        level: 'error',
+        message: `Human-confirmed field ${pointer} must cite maintainer_confirmation or user_instruction.`,
+      })
+    }
+  }
+
+  for (const pointer of ['/project/lifecycle/operatingMode', '/project/currentFocus']) {
+    const value = readJsonPointer(profile, pointer)
+    if (unresolved(value)) continue
+    const entry = provenance[pointer]
+    if (!entry || entry.status !== 'confirmed' || !entry.source?.reference) {
+      findings.push({
+        id: 'profile-ai-fact-missing-evidence',
+        level: 'warn',
+        message: `AI-maintained field ${pointer} needs confirmed provenance with a source reference.`,
+      })
+    }
+  }
+
+  const constraintIds = (profile.project?.constraints ?? []).map((item) => item.id)
+  if (new Set(constraintIds).size !== constraintIds.length) {
+    findings.push({
+      id: 'profile-duplicate-constraint-id',
+      level: 'error',
+      message: 'Project constraint IDs must be unique.',
+    })
+  }
+
+  for (const constraint of profile.project?.constraints ?? []) {
+    const pointer = `/project/constraints/@${constraint.id}`
+    const entry = provenance[pointer]
+    if (!entry || entry.status !== 'confirmed') {
+      findings.push({
+        id: 'profile-constraint-unconfirmed',
+        level: 'warn',
+        message: `Human-confirmed constraint ${constraint.id} has no confirmed provenance.`,
+      })
+      continue
+    }
+    if (!['maintainer_confirmation', 'user_instruction'].includes(entry.source?.type)) {
+      findings.push({
+        id: 'profile-constraint-invalid-source',
+        level: 'error',
+        message: `Human-confirmed constraint ${constraint.id} must cite maintainer_confirmation or user_instruction.`,
+      })
+    }
+  }
+
+  const data = profile.project?.commitments?.data
+  const compatibility = profile.project?.commitments?.compatibility
+  const nonDisposableData = ['personal_real_data', 'user_content', 'business_confidential', 'regulated_sensitive', 'mixed']
+  if (nonDisposableData.includes(data?.classification) && data?.retention === 'disposable') {
+    findings.push({
+      id: 'profile-data-retention-conflict',
+      level: 'warn',
+      message: 'Non-disposable data classification conflicts with disposable retention.',
+    })
+  }
+  if (nonDisposableData.includes(data?.classification) && compatibility?.userData === 'disposable') {
+    findings.push({
+      id: 'profile-user-data-compatibility-conflict',
+      level: 'warn',
+      message: 'Non-disposable data classification conflicts with disposable user-data compatibility.',
+    })
+  }
+
+  return findings
+}
 
 const DEFAULT_LOCALE = 'zh-CN'
 const SUPPORTED_LOCALES = new Set(['zh-CN', 'en'])
@@ -24,10 +170,10 @@ function printHelp() {
       'aief-init (optional bootstrap)',
       '',
       'Usage:',
-      '  aief-init new',
-      '  aief-init retrofit --level L0',
-      '  aief-init retrofit --level L0+',
-      '  aief-init doctor [--base-dir <path>]',
+      '  aief-init new [--profile-path <path>]',
+      '  aief-init retrofit --level L0 [--profile-path <path>]',
+      '  aief-init retrofit --level L0+ [--profile-path <path>]',
+      '  aief-init doctor [--base-dir <path>] [--profile-path <path>]',
       '  aief-init validate refs [--fix] [--base-dir <path>]',
       '  aief-init migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]',
       '',
@@ -35,6 +181,7 @@ function printHelp() {
       '  --level <L0|L0+|L1|L2|L3>   Migration level for retrofit (default: L0+)',
       `  --locale <zh-CN|en>   Template locale (default: ${DEFAULT_LOCALE})`,
       '  --base-dir <path>     Place AIEF assets under this base directory (example: AIEF)',
+      '  --profile-path <path> Profile path relative to the AIEF base directory (default: context/PROJECT_PROFILE.yaml). Existing AGENTS.md declarations are reused.',
       '  --to-base-dir <path>  Migration target base directory (for migrate)',
       '  --root-agents        Also write AGENTS.md at repo root (useful with --base-dir)',
       '  --no-root-agents     Skip writing AGENTS.md at repo root',
@@ -67,6 +214,7 @@ function parseArgs(argv) {
     fix: false,
     json: false,
     toBaseDir: undefined,
+    profilePath: undefined,
   }
 
   let start = 1
@@ -95,6 +243,11 @@ function parseArgs(argv) {
       const v = args[i + 1]
       if (!v) throw new Error('Missing value for --locale')
       opts.locale = v
+      i += 1
+    } else if (a === '--profile-path') {
+      const v = args[i + 1]
+      if (!v) throw new Error('Missing value for --profile-path')
+      opts.profilePath = v
       i += 1
     } else if (a === '--base-dir') {
       const v = args[i + 1]
@@ -135,10 +288,97 @@ function isFile(p) {
   }
 }
 
-function runDoctor({ baseDir, json }) {
+function resolveProjectRelativePath(projectRoot, input) {
+  const value = String(input || '').trim()
+  if (!value || path.isAbsolute(value) || /^[A-Za-z]:/.test(value)) {
+    throw new Error('Profile path must be a non-empty project-relative path.')
+  }
+  const resolved = path.resolve(projectRoot, value)
+  const relative = path.relative(projectRoot, resolved)
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error('Profile path must stay inside the project root.')
+  }
+  return resolved
+}
+
+function extractDeclaredProfilePaths(agentsPath) {
+  if (!isFile(agentsPath)) return []
+  const content = readText(agentsPath)
+  const paths = []
+  for (const line of content.split(/\r?\n/)) {
+    const match = line.match(/^\s*(?:[-*]\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\s*[:：]\s*(.*?)\s*$/i)
+    if (!match) continue
+    let value = match[1].trim()
+    if ((value.startsWith('`') && value.endsWith('`')) || (value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1).trim()
+    }
+    if (value) paths.push(value)
+  }
+  return paths
+}
+
+function normalizeProfilePath(projectRoot, input) {
+  const resolved = resolveProjectRelativePath(projectRoot, input)
+  return path.relative(projectRoot, resolved).split(path.sep).join('/')
+}
+
+function resolveInitProfilePath({ baseDir, explicitProfilePath, writeRootAgents }) {
+  const base = normalizeBaseDir(baseDir)
+  const projectRoot = path.resolve(process.cwd(), base || '.')
+  const declaredPaths = []
+
+  const baseAgentsPath = path.join(projectRoot, 'AGENTS.md')
+  for (const declared of extractDeclaredProfilePaths(baseAgentsPath)) {
+    declaredPaths.push(normalizeProfilePath(projectRoot, declared))
+  }
+
+  const rootAgentsPath = path.resolve(process.cwd(), 'AGENTS.md')
+  if (base && exists(rootAgentsPath)) {
+    for (const declared of extractDeclaredProfilePaths(rootAgentsPath)) {
+      const normalized = declared.replace(/\\/g, '/').replace(/^\.\//, '')
+      const prefix = `${base}/`
+      if (normalized.startsWith(prefix)) {
+        declaredPaths.push(normalizeProfilePath(projectRoot, normalized.slice(prefix.length)))
+        continue
+      }
+      const rootResolved = path.resolve(process.cwd(), normalized)
+      const relativeToBase = path.relative(projectRoot, rootResolved)
+      if (!relativeToBase || relativeToBase === '..' || relativeToBase.startsWith(`..${path.sep}`) || path.isAbsolute(relativeToBase)) {
+        throw new Error(
+          `Root AGENTS.md declares project profile "${declared}" outside --base-dir "${base}". Do not create a second profile: run retrofit without --base-dir or align the base directory with the existing profile location.`
+        )
+      }
+      declaredPaths.push(relativeToBase.split(path.sep).join('/'))
+    }
+  } else if (!base) {
+    for (const declared of extractDeclaredProfilePaths(rootAgentsPath)) {
+      declaredPaths.push(normalizeProfilePath(projectRoot, declared))
+    }
+  }
+
+  const uniqueDeclaredPaths = [...new Set(declaredPaths)]
+  if (uniqueDeclaredPaths.length > 1) {
+    throw new Error(`AGENTS.md files declare conflicting project profile paths: ${uniqueDeclaredPaths.join(', ')}. Resolve the SSOT before running AIEF initialization.`)
+  }
+
+  const declaredPath = uniqueDeclaredPaths[0]
+  const requestedPath = explicitProfilePath
+    ? normalizeProfilePath(projectRoot, explicitProfilePath)
+    : (declaredPath || 'context/PROJECT_PROFILE.yaml')
+
+  if (declaredPath && explicitProfilePath && requestedPath !== declaredPath) {
+    throw new Error(`AGENTS.md declares project profile "${declaredPath}", but --profile-path requested "${requestedPath}". Do not create a parallel profile; use the declared path or resolve the SSOT conflict first.`)
+  }
+
+  return requestedPath
+}
+
+function runDoctor({ baseDir, json, profilePath }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
   const contextIndexPath = path.join(projectRoot, 'context', 'INDEX.md')
+  const resolvedProfilePath = resolveProjectRelativePath(projectRoot, profilePath || 'context/PROJECT_PROFILE.yaml')
+  const profilePathLabel = profilePath || 'context/PROJECT_PROFILE.yaml'
   const scriptPath = path.join(projectRoot, 'scripts', 'aief.mjs')
 
   const checks = []
@@ -158,6 +398,83 @@ function runDoctor({ baseDir, json }) {
     blocking: true,
     hint: 'Run `aief-init new` or `aief-init retrofit --level L0+` to scaffold context index.',
   })
+
+  if (isFile(agentsPath)) {
+    const agentsText = readText(agentsPath)
+    const hasProfileInstruction = agentsText.includes(profilePathLabel) || agentsText.includes(path.basename(profilePathLabel))
+    const hasOperatingContext = agentsText.toLowerCase().includes('project operating context')
+    checks.push({
+      id: 'agents-project-operating-context',
+      label: 'AGENTS.md loads project operating context',
+      level: hasProfileInstruction && hasOperatingContext ? 'pass' : 'warn',
+      blocking: false,
+      hint: hasProfileInstruction && hasOperatingContext ? '' : `Add the Project Operating Context entry rules and profile path (${profilePathLabel}) to AGENTS.md.`,
+    })
+  }
+
+  if (isFile(contextIndexPath)) {
+    const indexText = readText(contextIndexPath)
+    const hasProfileNavigation = indexText.includes(path.basename(profilePathLabel))
+    checks.push({
+      id: 'context-index-project-profile',
+      label: 'context/INDEX.md navigates to project profile',
+      level: hasProfileNavigation ? 'pass' : 'warn',
+      blocking: false,
+      hint: hasProfileNavigation ? '' : `Add ${profilePathLabel} to the context index.`,
+    })
+  }
+
+  checks.push({
+    id: 'entry-project-profile',
+    label: `project profile file: ${profilePathLabel}`,
+    level: isFile(resolvedProfilePath) ? 'pass' : 'fail',
+    blocking: true,
+    hint: `Create the Project Profile at ${profilePathLabel} using the AIEF Project Profile schema.`,
+  })
+
+  if (isFile(resolvedProfilePath)) {
+    const profileText = readText(resolvedProfilePath)
+    let profile
+    try {
+      profile = parseYaml(profileText)
+      const valid = validateProjectProfile(profile)
+      checks.push({
+        id: 'project-profile-schema',
+        label: 'project profile YAML and JSON Schema',
+        level: valid ? 'pass' : 'fail',
+        blocking: true,
+        hint: valid ? '' : (validateProjectProfile.errors ?? []).slice(0, 5).map((issue) => `${issue.instancePath || '/'} ${issue.message}`).join('; '),
+      })
+
+      if (valid) {
+        const semanticFindings = inspectProjectProfileSemantics(profile)
+        for (const finding of semanticFindings) {
+          checks.push({
+            id: finding.id,
+            label: finding.message,
+            level: finding.level === 'error' ? 'fail' : 'warn',
+            blocking: finding.level === 'error',
+            hint: finding.level === 'error' ? 'Correct the Profile governance or conflicting facts before relying on this profile.' : 'Review the fact and record its source or resolve the conflict.',
+          })
+        }
+        checks.push({
+          id: 'project-profile-unknowns',
+          label: 'project profile contains unresolved values',
+          level: containsUnknownValue(profile) || profile.project?.release?.everReleased === null ? 'warn' : 'pass',
+          blocking: false,
+          hint: 'Confirm unknown project facts before relying on lifecycle or commitment policies.',
+        })
+      }
+    } catch (err) {
+      checks.push({
+        id: 'project-profile-yaml-parse',
+        label: 'project profile YAML parsing',
+        level: 'fail',
+        blocking: true,
+        hint: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
 
   if (!isFile(scriptPath)) {
     checks.push({
@@ -500,7 +817,49 @@ function resolveLocale(input) {
   }
 }
 
-function buildMinimalTemplates(locale, contextEntry) {
+function buildMinimalTemplates(
+  locale,
+  contextEntry,
+  profileEntry = 'context/PROJECT_PROFILE.yaml',
+  operatingContextSpecEntry = 'docs/standards/patterns/project-operating-context.md',
+  profileIndexEntry = 'PROJECT_PROFILE.yaml',
+  contextPrefix = '',
+) {
+  const profile = [
+    'apiVersion: aief.dev/project-profile/v1',
+    'kind: ProjectProfile',
+    '',
+    'metadata:',
+    '  name: example-project',
+    '  schemaVersion: "1.0"',
+    '',
+    'project:',
+    '  identity:',
+    '    name: Example Project',
+    '    description: Replace with a concise project description.',
+    '    ownership: unknown',
+    '    purposes: [unknown]',
+    '    productForms: [unknown]',
+    '    audiences: [unknown]',
+    '    horizon: unknown',
+    '  lifecycle:',
+    '    stage: unknown',
+    '    operatingMode: unknown',
+    '  release:',
+    '    everReleased: null',
+    '    channel: unknown',
+    '  commitments:',
+    '    users: { scope: unknown, support: unknown }',
+    '    deployment: { scope: unknown }',
+    '    data: { classification: unknown, retention: unknown, recovery: unknown }',
+    '    compatibility: { publicApi: unknown, internalApi: unknown, databaseSchema: unknown, userData: unknown }',
+    '    maintenance: { commitment: unknown }',
+    '  constraints: []',
+    '',
+    'governance:',
+    '  provenance: {}',
+    '  pendingChanges: []',
+  ].join('\n')
 
   if (locale === 'en') {
     return {
@@ -509,13 +868,25 @@ function buildMinimalTemplates(locale, contextEntry) {
         '',
         'This is the project-level entry for AI-assisted engineering.',
         '',
+        '## Project Operating Context',
+        '',
+        'Before design, implementation, refactoring, data, compatibility, or release work:',
+        '',
+        '1. Read `' + profileEntry + '` for project identity, lifecycle, release status, and commitments.',
+        '2. Follow `' + operatingContextSpecEntry + '` when installed.',
+        '3. Distinguish confirmed facts, proposals, unknowns, and stale information. Never interpret unknown as none.',
+        '4. Lifecycle provides defaults only; real data responsibilities and confirmed external commitments take precedence.',
+        '5. Task-level adjustments must state their reason and scope. They must not silently change the project profile or bypass data, security, or external commitments.',
+        '6. Never change human-confirmed fields autonomously. Propose a pending change when evidence suggests they are stale.',
+        '',
+        'The project profile is the single source of truth for project-level facts. Do not duplicate profile fields in AGENTS.md.',
+        '',
+        'Profile: `' + profileEntry + '`',
+        'Specification: `' + operatingContextSpecEntry + '`',
+        '',
         'Language:',
         '- Use Chinese for communication by default',
         '- Keep code/commands/identifiers in English',
-        '',
-        'Project:',
-        '- One-liner:',
-        '- Core value:',
         '',
         'Quick Commands:',
         '- build:',
@@ -523,13 +894,27 @@ function buildMinimalTemplates(locale, contextEntry) {
         '- run:',
         '',
         'Context Entry:',
-        `- ${contextEntry}`,
+        '- ' + contextEntry,
+        '- ' + profileEntry,
         '',
+        'Knowledge Base:',
+        '| Directory | Purpose | When to Load |',
+        '|---|---|---|',
+        '| ' + profileEntry + ' | Project identity, lifecycle, commitments | Before engineering decisions |',
+        '| ' + contextPrefix + 'context/business/ | Business knowledge | Requirements and domain models |',
+        '| ' + contextPrefix + 'context/tech/ | Technical docs | Architecture, APIs, conventions |',
+        '| ' + contextPrefix + 'context/experience/ | Experience library | Before implementation |',
+        '| ' + contextPrefix + 'workflow/ | Workflows | Complex task phase guides (optional) |',
+        '| ' + contextPrefix + 'docs/standards/ | Standards | Load as needed |',
       ].join('\n'),
       index: [
         '# Context Index',
         '',
         'This is the navigation entry for long-term project context.',
+        '',
+        '## Project Operating Context',
+        '',
+        '- [' + profileIndexEntry + '](' + profileIndexEntry + ') — project identity, lifecycle, release status, and commitments. Read before engineering decisions.',
         '',
         'Directories:',
         '',
@@ -538,7 +923,12 @@ function buildMinimalTemplates(locale, contextEntry) {
         '        tech/',
         '        experience/',
         '',
+        'Suggested next documents (optional):',
+        '- context/business/DOMAIN.md',
+        '- context/tech/ARCHITECTURE.md',
+        '- context/experience/INDEX.md',
       ].join('\n'),
+      profile,
     }
   }
 
@@ -548,13 +938,25 @@ function buildMinimalTemplates(locale, contextEntry) {
       '',
       '这是项目级 AI 协作入口。',
       '',
+      '## Project Operating Context',
+      '',
+      '进行设计、实现、重构、数据、兼容或发布工作前：',
+      '',
+      '1. 读取 `' + profileEntry + '`，了解项目身份、生命周期、发布状态和责任约束。',
+      '2. 遵循 `' + operatingContextSpecEntry + '`（若已安装）。',
+      '3. 区分已确认事实、候选推断、未知和过期信息；不得把 unknown 当作 none。',
+      '4. 生命周期只提供默认策略；真实数据责任和已确认外部承诺优先。',
+      '5. 任务级调整必须说明理由和作用域，不得静默改变项目画像或绕过数据、安全及外部责任。',
+      '6. 不得自行修改人工确认字段；发现变化时提出待确认建议。',
+      '',
+      '项目画像是项目级事实的唯一来源。AGENTS.md 不复制画像字段。',
+      '',
+      '画像：`' + profileEntry + '`',
+      '规范：`' + operatingContextSpecEntry + '`',
+      '',
       '语言规则：',
       '- 交流默认使用中文',
       '- 代码/命令/标识符保持英文',
-      '',
-      '项目信息：',
-      '- 项目一句话介绍：',
-      '- 核心价值：',
       '',
       '常用命令：',
       '- build:',
@@ -562,13 +964,27 @@ function buildMinimalTemplates(locale, contextEntry) {
       '- run:',
       '',
       '上下文入口：',
-      `- ${contextEntry}`,
+      '- ' + contextEntry,
+      '- ' + profileEntry,
       '',
+      '知识库导航：',
+      '| 目录 | 用途 | 何时加载 |',
+      '|---|---|---|',
+      '| ' + profileEntry + ' | 项目身份、生命周期和责任约束 | 工程决策前 |',
+      '| ' + contextPrefix + 'context/business/ | 业务知识 | 理解需求和领域模型 |',
+      '| ' + contextPrefix + 'context/tech/ | 技术文档 | 架构、API、开发规范 |',
+      '| ' + contextPrefix + 'context/experience/ | 经验库 | 实现前检索相关经验 |',
+      '| ' + contextPrefix + 'workflow/ | 工作流 | 复杂任务阶段指南（可选）|',
+      '| ' + contextPrefix + 'docs/standards/ | 规范标准 | 按需加载 |',
     ].join('\n'),
     index: [
       '# 上下文索引',
       '',
       '这是项目长期上下文的导航入口。',
+      '',
+      '## 项目运行上下文',
+      '',
+      '- [' + profileIndexEntry + '](' + profileIndexEntry + ')：项目身份、生命周期、发布状态和责任约束；工程决策前必须读取。',
       '',
       '目录结构：',
       '',
@@ -577,7 +993,12 @@ function buildMinimalTemplates(locale, contextEntry) {
       '        tech/',
       '        experience/',
       '',
+      '建议补充的文档（可选）：',
+      '- context/business/DOMAIN.md',
+      '- context/tech/ARCHITECTURE.md',
+      '- context/experience/INDEX.md',
     ].join('\n'),
+    profile,
   }
 }
 
@@ -617,7 +1038,7 @@ function buildScaffoldTemplates(locale) {
     'docs/standards/agent-spec.md': '# Agent 规范\n\n定义角色边界、职责与质量要求。\n',
     'docs/standards/patterns/phase-router.md': '# 模式：阶段路由\n\n将任务信号映射到对应工作流阶段。\n',
     'docs/standards/patterns/experience-mgmt.md': '# 模式：经验管理\n\n沉淀、索引与复用项目经验。\n',
-    'docs/standards/patterns/context-loading.md': '# 模式：上下文加载\n\n按任务最小化加载相关上下文。\n',
+    'docs/standards/patterns/context-loading.md': '# 模式：上下文加载\n\n工程决策前先读取 context/PROJECT_PROFILE.yaml，识别项目生命周期和责任约束；再按任务加载业务、技术和经验上下文。Phase Router 负责任务阶段，Project Operating Context 负责项目级工程策略。\n',
     'templates/minimal/AGENTS.md': '# AI 编程指南模板\n\n项目级 AI 入口模板起点。\n',
     'templates/minimal/context/INDEX.md': '# 上下文索引模板\n\n上下文导航模板起点。\n',
   }
@@ -895,20 +1316,24 @@ function buildExpertTemplates(locale) {
       'docs/standards/patterns/context-loading.md': [
         '# Pattern: Context Loading',
         '',
-        '> Load only the context relevant to the current task — no more, no less.',
+        '> Load project operating context before task-specific knowledge.',
         '',
-        '## Loading Strategy',
+        '## Mandatory Project Context',
+        '',
+        '- Read `context/PROJECT_PROFILE.yaml` before engineering decisions.',
+        '- Follow the Project Operating Context rules in AGENTS.md.',
+        '- Never interpret unknown as none; preserve confirmed commitments.',
+        '',
+        '## Task-specific Loading',
         '',
         '| Task Involves | Auto-load |',
         '|---------------|-----------|',
         '| Domain logic | `context/business/domain-model.md` |',
-        '| API development | `context/tech/architecture.md` |',
+        '| API development | `context/tech/api/` and architecture docs |',
+        '| Data changes | Project data commitments and database conventions |',
         '| Any implementation | `context/experience/INDEX.md` (search for matches) |',
         '',
-        '## How to Apply',
-        '',
-        'Reference this pattern in your `AGENTS.md` under the auto-behavior section.',
-        'Specify which context files map to which task types.',
+        'Phase Router selects workflow phases; Project Operating Context selects project-level engineering defaults.',
       ].join('\n'),
       '.ai-adapters/README.md': [
         '# AI Adapter Configurations',
@@ -1031,43 +1456,85 @@ function buildExpertTemplates(locale) {
   }
 }
 
-function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents } = {}) {
+function initMinimal({
+  locale,
+  baseDir,
+  profilePath: requestedProfilePath,
+  force,
+  dryRun,
+  writeRootAgents,
+  preserveExisting = false,
+} = {}) {
   const base = normalizeBaseDir(baseDir)
   const shouldWriteRootAgents = typeof writeRootAgents === 'boolean' ? writeRootAgents : !base
+  const profilePath = resolveInitProfilePath({
+    baseDir: base,
+    explicitProfilePath: requestedProfilePath,
+    writeRootAgents: shouldWriteRootAgents,
+  })
+  const profileIndexEntry = path.posix.relative('context', profilePath.replace(/\\/g, '/'))
   const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
+  const rootProfileEntry = scopedRelPath(base, profilePath)
+  const rootSpecEntry = scopedRelPath(base, 'docs/standards/patterns/project-operating-context.md')
   const baseContextEntry = 'context/INDEX.md'
-  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry)
-  const baseTemplates = buildMinimalTemplates(locale, baseContextEntry)
+  const baseTemplates = buildMinimalTemplates(
+    locale,
+    baseContextEntry,
+    profilePath,
+    'docs/standards/patterns/project-operating-context.md',
+    profileIndexEntry,
+  )
+  const rootTemplates = buildMinimalTemplates(
+    locale,
+    rootContextEntry,
+    rootProfileEntry,
+    rootSpecEntry,
+    profileIndexEntry,
+    base ? base + '/' : '',
+  )
   const bKeep = templatePath('templates/minimal/context/business/.gitkeep')
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
   if (base) {
-    writeFile(repoPath(base, 'AGENTS.md'), `${baseTemplates.agents}\n`, { force, dryRun })
+    const target = repoPath(base, 'AGENTS.md')
+    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
   if (shouldWriteRootAgents) {
-    writeFile(repoPath('', 'AGENTS.md'), `${rootTemplates.agents}\n`, { force, dryRun })
+    const target = repoPath('', 'AGENTS.md')
+    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\n`)
   }
 
-  writeFile(repoPath(base, 'context/INDEX.md'), `${baseTemplates.index}\n`, { force, dryRun })
+  const indexTarget = repoPath(base, 'context/INDEX.md')
+  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing ${indexTarget}\n`)
+
+  const profileTarget = repoPath(base, profilePath)
+  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\n`)
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
   ensureDir(repoPath(base, 'context/experience'), { dryRun })
 
-  if (exists(bKeep)) copyFile(bKeep, repoPath(base, 'context/business/.gitkeep'), { force, dryRun })
-  if (exists(tKeep)) copyFile(tKeep, repoPath(base, 'context/tech/.gitkeep'), { force, dryRun })
-  if (exists(eKeep)) copyFile(eKeep, repoPath(base, 'context/experience/.gitkeep'), { force, dryRun })
+  const businessKeepTarget = repoPath(base, 'context/business/.gitkeep')
+  const techKeepTarget = repoPath(base, 'context/tech/.gitkeep')
+  const experienceKeepTarget = repoPath(base, 'context/experience/.gitkeep')
+  if (exists(bKeep) && !exists(businessKeepTarget)) copyFile(bKeep, businessKeepTarget, { force, dryRun })
+  if (exists(tKeep) && !exists(techKeepTarget)) copyFile(tKeep, techKeepTarget, { force, dryRun })
+  if (exists(eKeep) && !exists(experienceKeepTarget)) copyFile(eKeep, experienceKeepTarget, { force, dryRun })
 
   if (base) {
     ensureDir(repoPath(base, 'scripts'), { dryRun })
   }
 }
 
-function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents } = {}) {
+function initRetrofit({ level, locale, baseDir, profilePath, force, dryRun, writeRootAgents } = {}) {
   const base = normalizeBaseDir(baseDir)
-  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents })
+  initMinimal({ locale, baseDir: base, profilePath, force, dryRun, writeRootAgents, preserveExisting: true })
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1' && level !== 'L2' && level !== 'L3') {
@@ -1076,12 +1543,19 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
 
   const snapshotPath = repoPath(base, 'context/tech/REPO_SNAPSHOT.md')
   const snapshotContent = formatRepoSnapshot(process.cwd(), locale)
-  writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  if (!exists(snapshotPath)) writeFile(snapshotPath, snapshotContent, { force, dryRun })
+  else process.stdout.write('[skip] preserve existing ' + snapshotPath + '\n')
 
   if (level === 'L1' || level === 'L2' || level === 'L3') {
     const scaffoldTemplates = buildScaffoldTemplates(locale)
     for (const [targetPath, content] of Object.entries(scaffoldTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      const destination = repoPath(base, targetPath)
+      const isProjectKnowledge = /^context\/(business|tech|experience)\//.test(targetPath)
+      if (exists(destination) && (isProjectKnowledge || !force)) {
+        process.stdout.write('[skip] preserve existing ' + destination + '\n')
+        continue
+      }
+      writeFile(destination, content, { force, dryRun })
     }
 
     if (base) {
@@ -1092,7 +1566,12 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
   if (level === 'L2' || level === 'L3') {
     const advancedTemplates = buildAdvancedTemplates(locale)
     for (const [targetPath, content] of Object.entries(advancedTemplates)) {
-      writeFile(repoPath(base, targetPath), content, { force, dryRun })
+      const destination = repoPath(base, targetPath)
+      if (exists(destination) && targetPath.startsWith('context/')) {
+        process.stdout.write('[skip] preserve existing ' + destination + '\n')
+        continue
+      }
+      writeFile(destination, content, { force, dryRun })
     }
     ensureDir(repoPath(base, 'context/experience/lessons'), { dryRun })
     ensureDir(repoPath(base, 'context/experience/reports'), { dryRun })
@@ -1155,6 +1634,7 @@ function main() {
       initMinimal({
         locale: localeResult.locale,
         baseDir,
+        profilePath: opts.profilePath,
         force: opts.force,
         dryRun: opts.dryRun,
         writeRootAgents,
@@ -1170,6 +1650,7 @@ function main() {
         level: opts.level,
         locale: localeResult.locale,
         baseDir,
+        profilePath: opts.profilePath,
         force: opts.force,
         dryRun: opts.dryRun,
         writeRootAgents,
@@ -1181,7 +1662,7 @@ function main() {
     }
 
     if (opts.command === 'doctor') {
-      runDoctor({ baseDir, json: opts.json })
+      runDoctor({ baseDir, json: opts.json, profilePath: opts.profilePath })
       return
     }
 

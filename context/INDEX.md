@@ -2,6 +2,11 @@
 
 > 项目知识的入口索引，帮助 AI 快速定位相关文档。
 
+## 项目运行上下文
+
+- [PROJECT_PROFILE.yaml](PROJECT_PROFILE.yaml) — 项目身份、生命周期、发布状态、责任约束和事实来源。工程决策前必须读取。
+- [Project Operating Context](../docs/standards/patterns/project-operating-context.md) — 项目画像解释、工程策略推导和冲突处理规范。
+
 ## 目录结构
 
 ```

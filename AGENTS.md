@@ -4,9 +4,20 @@
 
 ## 项目概述
 
-**[项目名称]** 是 [项目简介，1-2 句话描述项目做什么]。
+项目身份、目的、目标用户和产品形态以 `context/PROJECT_PROFILE.yaml` 为准。
 
-**核心价值**：[项目解决什么问题，为谁解决]
+## Project Operating Context
+
+在设计、实现、重构、数据、兼容或发布相关工作前：
+
+1. 读取 `context/PROJECT_PROFILE.yaml`，理解项目性质、生命周期、发布状态和责任约束。
+2. 遵循 `docs/standards/patterns/project-operating-context.md`（若已安装）。
+3. 区分已确认事实、候选推断、未知和过期信息；不得把 unknown 当作 none。
+4. 生命周期只提供默认工程策略；真实数据责任和已确认外部承诺优先。
+5. 任务级调整必须说明理由和作用域，不得静默改变项目画像或绕过数据、安全及外部责任。
+6. 不得自行修改人工确认字段；发现变化时提出待确认建议。
+
+项目画像是项目级事实的唯一来源。AGENTS.md 不复制画像字段，任务状态仍由现有任务体系维护。
 
 ## 语言规则
 
@@ -20,6 +31,7 @@
 
 | 目录 | 用途 | 何时加载 |
 |------|------|----------|
+| [context/PROJECT_PROFILE.yaml](context/PROJECT_PROFILE.yaml) | 项目身份、生命周期、责任约束 | 工程决策前 |
 | [context/business/](context/business/) | 业务知识 | 理解业务需求、领域模型 |
 | [context/tech/](context/tech/) | 技术文档 | 架构设计、API、开发规范 |
 | [context/experience/](context/experience/) | 经验库 | 避免重复踩坑 |

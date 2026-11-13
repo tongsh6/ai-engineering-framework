@@ -34,13 +34,18 @@ Base directory option:
 
 Subcommands:
 
-    new [--locale zh-CN|en] [--base-dir <path>] [--dry-run] [--force]
-    retrofit --level L0|L0+|L1|L2|L3 [--locale zh-CN|en] [--base-dir <path>] [--dry-run] [--force] [--root-agents]
+    new [--locale zh-CN|en] [--base-dir <path>] [--profile-path <path>] [--dry-run] [--force]
+    retrofit --level L0|L0+|L1|L2|L3 [--locale zh-CN|en] [--base-dir <path>] [--profile-path <path>] [--dry-run] [--force] [--root-agents]
     doctor [--base-dir <path>]
     validate refs [--fix] [--base-dir <path>]
     migrate [assets] --to-base-dir <path> [--dry-run] [--base-dir <path>]
 
+Doctor defaults to `context/PROJECT_PROFILE.yaml`; use `--profile-path` for an existing project's SSOT location. The path must remain inside the project root.
+
 Notes:
-- It only writes AIEF entry files (AGENTS.md + context/*). It does not modify your existing code structure.
+- New and retrofit create context/PROJECT_PROFILE.yaml at every adoption level, including L0.
+- Retrofit reuses a custom Profile path declared by existing AGENTS.md; pass `--profile-path` when the path is maintained elsewhere or cannot be detected. It never creates a second default Profile beside a declared custom SSOT.
+- Retrofit preserves existing AGENTS.md, context/INDEX.md, Profile, and existing business/technical/experience context files.
+- It only writes AIEF entry/context assets. It does not modify your existing code structure.
 - By default it will not overwrite existing files. Use --force to overwrite.
 - Unsupported locale values fall back to zh-CN with a warning.

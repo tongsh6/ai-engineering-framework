@@ -13,12 +13,13 @@
 - Repo 快照：init/RETROFIT_REPO_SNAPSHOT.md
 
 最小可复制模板：
-- templates/minimal/（只包含 AGENTS.md 与 context/INDEX.md 及空目录占位）
+- templates/minimal/（包含 AGENTS.md、context/INDEX.md、context/PROJECT_PROFILE.yaml 及空目录占位）
 - templates/retrofit/（包含 REPO_SNAPSHOT.md 初稿模板）
 
 推荐接入方式（无拷贝前置）：
 - New Project: npx --yes @tongsh6/aief-init@latest new
 - Existing Project (Retrofit): npx --yes @tongsh6/aief-init@latest retrofit --level L0+
+- Existing Project with custom Profile SSOT: add `--profile-path <path>`
 
 等级说明：
 - Existing Project 支持 `L0`、`L0+`、`L1`、`L2`、`L3`
