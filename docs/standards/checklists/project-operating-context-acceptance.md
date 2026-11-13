@@ -112,6 +112,7 @@
 | S10 | AI 字段没有来源证据 | Doctor WARNING；不得作为已验证事实 |
 | S11 | pending change 缺少证据列表 | Schema FAIL |
 | S12 | 相互矛盾的责任声明 | Doctor WARNING 或 BLOCK，按数据/安全影响判定 |
+| S13 | Profile 位于项目既有 SSOT 自定义路径 | `doctor --profile-path` 应按同一 Schema 与治理规则校验 |
 
 ## 4. 初始化测试
 
