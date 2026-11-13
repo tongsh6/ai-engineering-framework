@@ -1185,7 +1185,7 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
   const snapshotPath = repoPath(base, 'context/tech/REPO_SNAPSHOT.md')
   const snapshotContent = formatRepoSnapshot(process.cwd(), locale)
   if (!exists(snapshotPath)) writeFile(snapshotPath, snapshotContent, { force, dryRun })
-  else process.stdout.write(\`[skip] preserve existing \${snapshotPath}\n\`)
+  else process.stdout.write('[skip] preserve existing ' + snapshotPath + '\n')
 
   if (level === 'L1' || level === 'L2' || level === 'L3') {
     const scaffoldTemplates = buildScaffoldTemplates(locale)
@@ -1193,7 +1193,7 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
       const destination = repoPath(base, targetPath)
       const isProjectKnowledge = /^context\/(business|tech|experience)\//.test(targetPath)
       if (exists(destination) && (isProjectKnowledge || !force)) {
-        process.stdout.write(\`[skip] preserve existing \${destination}\n\`)
+        process.stdout.write('[skip] preserve existing ' + destination + '\n')
         continue
       }
       writeFile(destination, content, { force, dryRun })
@@ -1209,7 +1209,7 @@ function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents }
     for (const [targetPath, content] of Object.entries(advancedTemplates)) {
       const destination = repoPath(base, targetPath)
       if (exists(destination) && targetPath.startsWith('context/')) {
-        process.stdout.write(\`[skip] preserve existing \${destination}\n\`)
+        process.stdout.write('[skip] preserve existing ' + destination + '\n')
         continue
       }
       writeFile(destination, content, { force, dryRun })
