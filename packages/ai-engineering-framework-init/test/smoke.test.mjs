@@ -161,7 +161,7 @@ test('doctor rejects confirmed human facts with an AI-only evidence source', () 
       '      source:',
       '        type: repository_evidence',
       '        reference: README.md',
-    ].join('\\n'))
+    ].join('\n'))
     fs.writeFileSync(profilePath, profile)
     const r = run(['doctor', '--json'], { cwd: dir })
     assert.notEqual(r.status, 0)
