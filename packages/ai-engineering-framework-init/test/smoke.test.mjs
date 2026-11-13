@@ -173,7 +173,7 @@ test('doctor resolves constraint provenance by stable constraint ID address', ()
       '    - id: preserve-user-content',
       '      statement: Preserve real user-created content',
       '      scope: project_wide',
-    ].join('\\n'))
+    ].join('\n'))
     profile = profile.replace('  provenance: {}', [
       '  provenance:',
       '    "/project/constraints/@preserve-user-content":',
@@ -181,7 +181,7 @@ test('doctor resolves constraint provenance by stable constraint ID address', ()
       '      source:',
       '        type: maintainer_confirmation',
       '      confirmedAt: "2026-11-13"',
-    ].join('\\n'))
+    ].join('\n'))
     fs.writeFileSync(profilePath, profile)
     const r = run(['doctor', '--json'], { cwd: dir })
     assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
