@@ -35,8 +35,10 @@ Project Operating Context为 AI 提供项目级事实和决策约束。它回答
 - Workflow Phase：当前任务阶段（proposal、design、implement、review 等）。
 
 生命周期字段：
-- `project.lifecycle.stage`：discovery、poc、mvp_development、pre_release、validation、production、maintenance、sunset、unknown。
+- `project.lifecycle.stage`：discovery、poc、development、mvp_development、pre_release、validation、production、maintenance、sunset、unknown。
 - `project.lifecycle.operatingMode`：normal_development、feature_development、system_refactoring、migration、release_preparation、incident_response、maintenance、sunset_preparation、unknown。
+
+`development` 表示研发中：建设和完善产品能力、架构与质量。它不限定为 MVP，不表示核心能力已完成，也不表示已经进入发布准备。维护者仅确认“研发中”时记录为 `development`，不得擅自细化成 `mvp_development` 或 `pre_release`。`mvp_development` 保留为明确选择 MVP 建设范围的项目使用；两者不是强制相邻阶段，也不得自动互相转换。未确认生命周期的新项目仍使用 `unknown`。
 
 发布事实独立记录：
 - `project.release.everReleased`：true / false / null（未知）。
@@ -44,6 +46,8 @@ Project Operating Context为 AI 提供项目级事实和决策约束。它回答
 - false 必须对应 none；true 不得对应 none；null 表示历史发布事实未知，不允许推断为从未发布。
 
 生命周期不是单向状态机。项目可因重构、迁移、维护或业务变化改变工作模式；重大生命周期和发布状态变更须人工确认。
+
+确认 `development` 只更新生命周期及其来源，不修改发布历史、工作模式、用户范围、兼容承诺或数据责任。已发布项目也可处于新一轮研发；不得从 `development` 推导“从未发布”或取消已有承诺。
 
 ## 4. Profile 契约
 
@@ -134,16 +138,16 @@ AI 在重要工程任务开始时按以下顺序推导策略：
 
 ### 6.1 生命周期默认策略
 
-| 领域 | discovery / poc | mvp_development | validation | production |
-|---|---|---|---|---|
-| product | 验证假设 | 实现核心闭环 | 基于反馈调整 | 控制需求变更 |
-| architecture | 解决关键未知 | 建立必要结构 | 控制演进风险 | 长期可维护 |
-| implementation | 快速验证 | 完整实现核心行为 | 稳定迭代 | 风险受控 |
-| quality | 验证关键假设 | 核心行为与必要回归 | 增强自动化验证 | 持续质量保障 |
-| compatibility | 按实际契约 | 按实际契约 | 保护真实依赖 | 履行正式契约 |
-| data | 按数据责任 | 按数据责任 | 保护用户资产 | 保护用户资产 |
-| delivery | 实验性交付 | 按发布目标 | 完整发布准备 | 正式交付治理 |
-| maintenance | 避免提前建设 | 维护必要文档 | 用户和维护文档 | 长期维护能力 |
+| 领域 | discovery / poc | development | mvp_development | validation | production |
+|---|---|---|---|---|---|
+| product | 验证假设 | 按已确认目标建设产品能力，不预设 MVP 范围 | 实现核心闭环 | 基于反馈调整 | 控制需求变更 |
+| architecture | 解决关键未知 | 完善必要架构，允许有依据的结构重构 | 建立必要结构 | 控制演进风险 | 长期可维护 |
+| implementation | 快速验证 | 按任务完整范围实现并清理重复路径 | 完整实现核心行为 | 稳定迭代 | 风险受控 |
+| quality | 验证关键假设 | 验证核心契约、真实行为与相关回归 | 核心行为与必要回归 | 增强自动化验证 | 持续质量保障 |
+| compatibility | 按实际契约 | 按实际消费者与已确认承诺 | 按实际契约 | 保护真实依赖 | 履行正式契约 |
+| data | 按数据责任 | 按数据责任保护真实资产 | 按数据责任 | 保护用户资产 | 保护用户资产 |
+| delivery | 实验性交付 | 交付可验证的研发成果，不推定进入发布收尾 | 按发布目标 | 完整发布准备 | 正式交付治理 |
+| maintenance | 避免提前建设 | 按维护预期维护必要文档和结构 | 维护必要文档 | 用户和维护文档 | 长期维护能力 |
 
 maintenance 阶段：控制新增范围，优先必要修复，履行既有支持承诺。
 

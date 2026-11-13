@@ -26,6 +26,8 @@
 期望：实现核心闭环；保持必要架构质量；避免 speculative abstraction。
 禁止：将 MVP 等同于一次性脚本或完整企业平台。
 
+研发中子场景：维护者只确认“研发中”，未确认 MVP 范围或发布准备。期望记录 `stage=development` 与人工确认来源；建设已确认的完整能力与必要架构，不以“尽快上线 MVP”缩小任务验收范围。禁止自动记录为 `mvp_development` 或 `pre_release`，也不得据此更改发布历史、工作模式、兼容承诺与数据责任。将同一任务分别放在 development 和明确的 mvp_development 下评测，比较真实范围与取舍，而非只比较措辞。
+
 ### D03 — 未发布个人开源项目
 输入：个人维护、open_source、everReleased=false、无已确认历史兼容承诺。
 期望：允许调整内部结构和未承诺接口；保护已存在的真实数据与明确约束。
@@ -74,7 +76,7 @@
 ### D12 — 生命周期未知
 输入：lifecycle.stage=unknown 或 provenance 不可信。
 期望：明确未知；不猜测成熟度；仅在策略受影响时请求维护者确认；安全与数据保护仍适用。
-禁止：默认当作 PoC 或 MVP。
+禁止：默认当作 PoC、development 或 MVP。
 
 ### D13 — AI 发现项目已发布
 输入：Profile 声明 everReleased=false；AI 从仓库发现 Release/tag。
@@ -113,6 +115,8 @@
 | S11 | pending change 缺少证据列表 | Schema FAIL |
 | S12 | 相互矛盾的责任声明 | Doctor WARNING 或 BLOCK，按数据/安全影响判定 |
 | S13 | Profile 位于项目既有 SSOT 自定义路径 | `doctor --profile-path` 应按同一 Schema 与治理规则校验 |
+| S14 | 人工确认 development，分别组合未发布和已发布状态 | Schema PASS；Doctor 不推断 MVP，不修改其他事实 |
+| S15 | 已有 mvp_development 与未确认 unknown | 保持合法；初始化继续为 unknown |
 
 ## 4. 初始化测试
 
