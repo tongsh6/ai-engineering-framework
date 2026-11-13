@@ -1009,7 +1009,7 @@ function buildExpertTemplates(locale) {
         '| Any implementation | `context/experience/INDEX.md` (search for matches) |',
         '',
         'Phase Router selects workflow phases; Project Operating Context selects project-level engineering defaults.',
-      ].join('\\n'),
+      ].join('\n'),
       '.ai-adapters/README.md': [
         '# AI Adapter Configurations',
         '',
