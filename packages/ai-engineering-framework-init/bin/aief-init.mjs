@@ -304,11 +304,15 @@ function resolveProjectRelativePath(projectRoot, input) {
 function extractDeclaredProfilePaths(agentsPath) {
   if (!isFile(agentsPath)) return []
   const content = readText(agentsPath)
-  const pattern = /^\s*(?:[-*]\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\s*[:：]\s*(?:`([^`]+)`|"([^"]+)"|'([^']+)'|(\S+))\s*$/gim
   const paths = []
-  for (const match of content.matchAll(pattern)) {
-    const value = match[1] || match[2] || match[3] || match[4]
-    if (value) paths.push(value.trim())
+  for (const line of content.split(/\r?\n/)) {
+    const match = line.match(/^\s*(?:[-*]\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\s*[:：]\s*(.*?)\s*$/i)
+    if (!match) continue
+    let value = match[1].trim()
+    if ((value.startsWith('`') && value.endsWith('`')) || (value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1).trim()
+    }
+    if (value) paths.push(value)
   }
   return paths
 }
