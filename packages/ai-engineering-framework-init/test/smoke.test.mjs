@@ -225,6 +225,67 @@ test('doctor rejects confirmed human facts with an AI-only evidence source', () 
   }
 })
 
+
+test('doctor warns when an unknown value appears inside a profile array', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    const profilePath = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
+    let profile = fs.readFileSync(profilePath, 'utf8')
+    const replacements = [
+      ['ownership: unknown', 'ownership: personal'],
+      ['horizon: unknown', 'horizon: long_term'],
+      ['stage: unknown', 'stage: mvp_development'],
+      ['operatingMode: unknown', 'operatingMode: feature_development'],
+      ['everReleased: null', 'everReleased: false'],
+      ['channel: unknown', 'channel: none'],
+      ['scope: unknown', 'scope: personal'],
+      ['support: unknown', 'support: none'],
+      ['scope: unknown', 'scope: local_only'],
+      ['classification: unknown', 'classification: disposable_test'],
+      ['retention: unknown', 'retention: disposable'],
+      ['recovery: unknown', 'recovery: none'],
+      ['publicApi: unknown', 'publicApi: none'],
+      ['internalApi: unknown', 'internalApi: none'],
+      ['databaseSchema: unknown', 'databaseSchema: disposable'],
+      ['userData: unknown', 'userData: disposable'],
+      ['commitment: unknown', 'commitment: none'],
+    ]
+    for (const [from, to] of replacements) profile = profile.replace(from, to)
+    fs.writeFileSync(profilePath, profile)
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'project-profile-unknowns' && item.level === 'warn'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
+test('doctor warns when a project constraint has no human-confirmed provenance', () => {
+  const dir = makeTmp()
+  try {
+    const created = run(['new'], { cwd: dir })
+    assert.equal(created.status, 0, `stderr: ${created.stderr}`)
+    const profilePath = path.join(dir, 'context', 'PROJECT_PROFILE.yaml')
+    let profile = fs.readFileSync(profilePath, 'utf8')
+    profile = profile.replace('  constraints: []', [
+      '  constraints:',
+      '    - id: preserve-user-content',
+      '      statement: Preserve real user-created content',
+      '      scope: project_wide',
+    ].join('\n'))
+    fs.writeFileSync(profilePath, profile)
+    const r = run(['doctor', '--json'], { cwd: dir })
+    assert.equal(r.status, 0, `stdout: ${r.stdout} stderr: ${r.stderr}`)
+    const payload = JSON.parse(r.stdout)
+    assert.ok(payload.checks.some((item) => item.id === 'profile-constraint-unconfirmed' && item.level === 'warn'))
+  } finally {
+    cleanup(dir)
+  }
+})
+
 test('canonical CLI doctor --json returns machine-readable summary', () => {
   const dir = makeTmp()
   try {
