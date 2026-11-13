@@ -301,6 +301,74 @@ function resolveProjectRelativePath(projectRoot, input) {
   return resolved
 }
 
+function extractDeclaredProfilePaths(agentsPath) {
+  if (!isFile(agentsPath)) return []
+  const content = readText(agentsPath)
+  const pattern = /^\\s*(?:[-*]\\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\\s*[:：]\\s*(?:`([^`]+)`|"([^"]+)"|'([^']+)'|(\\S+))\\s*$/gim
+  const paths = []
+  for (const match of content.matchAll(pattern)) {
+    const value = match[1] || match[2] || match[3] || match[4]
+    if (value) paths.push(value.trim())
+  }
+  return paths
+}
+
+function normalizeProfilePath(projectRoot, input) {
+  const resolved = resolveProjectRelativePath(projectRoot, input)
+  return path.relative(projectRoot, resolved).split(path.sep).join('/')
+}
+
+function resolveInitProfilePath({ baseDir, explicitProfilePath, writeRootAgents }) {
+  const base = normalizeBaseDir(baseDir)
+  const projectRoot = path.resolve(process.cwd(), base || '.')
+  const declaredPaths = []
+
+  const baseAgentsPath = path.join(projectRoot, 'AGENTS.md')
+  for (const declared of extractDeclaredProfilePaths(baseAgentsPath)) {
+    declaredPaths.push(normalizeProfilePath(projectRoot, declared))
+  }
+
+  const rootAgentsPath = path.resolve(process.cwd(), 'AGENTS.md')
+  if (base && exists(rootAgentsPath)) {
+    for (const declared of extractDeclaredProfilePaths(rootAgentsPath)) {
+      const normalized = declared.replace(/\\\\/g, '/').replace(/^\\.\\//, '')
+      const prefix = `${base}/`
+      if (normalized.startsWith(prefix)) {
+        declaredPaths.push(normalizeProfilePath(projectRoot, normalized.slice(prefix.length)))
+        continue
+      }
+      const rootResolved = path.resolve(process.cwd(), normalized)
+      const relativeToBase = path.relative(projectRoot, rootResolved)
+      if (!relativeToBase || relativeToBase === '..' || relativeToBase.startsWith(`..${path.sep}`) || path.isAbsolute(relativeToBase)) {
+        throw new Error(
+          `Root AGENTS.md declares project profile "${declared}" outside --base-dir "${base}". Do not create a second profile: run retrofit without --base-dir or align the base directory with the existing profile location.`
+        )
+      }
+      declaredPaths.push(relativeToBase.split(path.sep).join('/'))
+    }
+  } else if (!base) {
+    for (const declared of extractDeclaredProfilePaths(rootAgentsPath)) {
+      declaredPaths.push(normalizeProfilePath(projectRoot, declared))
+    }
+  }
+
+  const uniqueDeclaredPaths = [...new Set(declaredPaths)]
+  if (uniqueDeclaredPaths.length > 1) {
+    throw new Error(`AGENTS.md files declare conflicting project profile paths: ${uniqueDeclaredPaths.join(', ')}. Resolve the SSOT before running AIEF initialization.`)
+  }
+
+  const declaredPath = uniqueDeclaredPaths[0]
+  const requestedPath = explicitProfilePath
+    ? normalizeProfilePath(projectRoot, explicitProfilePath)
+    : (declaredPath || 'context/PROJECT_PROFILE.yaml')
+
+  if (declaredPath && explicitProfilePath && requestedPath !== declaredPath) {
+    throw new Error(`AGENTS.md declares project profile "${declaredPath}", but --profile-path requested "${requestedPath}". Do not create a parallel profile; use the declared path or resolve the SSOT conflict first.`)
+  }
+
+  return requestedPath
+}
+
 function runDoctor({ baseDir, json, profilePath }) {
   const projectRoot = baseDir ? path.resolve(process.cwd(), baseDir) : process.cwd()
   const agentsPath = path.join(projectRoot, 'AGENTS.md')
@@ -1384,38 +1452,65 @@ function buildExpertTemplates(locale) {
   }
 }
 
-function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents, preserveExisting = false } = {}) {
+function initMinimal({
+  locale,
+  baseDir,
+  profilePath: requestedProfilePath,
+  force,
+  dryRun,
+  writeRootAgents,
+  preserveExisting = false,
+} = {}) {
   const base = normalizeBaseDir(baseDir)
   const shouldWriteRootAgents = typeof writeRootAgents === 'boolean' ? writeRootAgents : !base
+  const profilePath = resolveInitProfilePath({
+    baseDir: base,
+    explicitProfilePath: requestedProfilePath,
+    writeRootAgents: shouldWriteRootAgents,
+  })
+  const profileIndexEntry = path.posix.relative('context', profilePath.replace(/\\\\/g, '/'))
   const rootContextEntry = scopedRelPath(base, 'context/INDEX.md')
-  const rootProfileEntry = scopedRelPath(base, 'context/PROJECT_PROFILE.yaml')
+  const rootProfileEntry = scopedRelPath(base, profilePath)
   const rootSpecEntry = scopedRelPath(base, 'docs/standards/patterns/project-operating-context.md')
   const baseContextEntry = 'context/INDEX.md'
-  const baseTemplates = buildMinimalTemplates(locale, baseContextEntry)
-  const rootTemplates = buildMinimalTemplates(locale, rootContextEntry, rootProfileEntry, rootSpecEntry, 'PROJECT_PROFILE.yaml', base ? base + '/' : '')
+  const baseTemplates = buildMinimalTemplates(
+    locale,
+    baseContextEntry,
+    profilePath,
+    'docs/standards/patterns/project-operating-context.md',
+    profileIndexEntry,
+  )
+  const rootTemplates = buildMinimalTemplates(
+    locale,
+    rootContextEntry,
+    rootProfileEntry,
+    rootSpecEntry,
+    profileIndexEntry,
+    base ? base + '/' : '',
+  )
   const bKeep = templatePath('templates/minimal/context/business/.gitkeep')
   const tKeep = templatePath('templates/minimal/context/tech/.gitkeep')
   const eKeep = templatePath('templates/minimal/context/experience/.gitkeep')
 
   if (base) {
     const target = repoPath(base, 'AGENTS.md')
-    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\n`, { force, dryRun })
-    else process.stdout.write(`[skip] preserve existing ${target}\n`)
+    if (!preserveExisting || !exists(target)) writeFile(target, `${baseTemplates.agents}\\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\\n`)
   }
 
   if (shouldWriteRootAgents) {
     const target = repoPath('', 'AGENTS.md')
-    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\n`, { force, dryRun })
-    else process.stdout.write(`[skip] preserve existing ${target}\n`)
+    if (!preserveExisting || !exists(target)) writeFile(target, `${rootTemplates.agents}\\n`, { force, dryRun })
+    else process.stdout.write(`[skip] preserve existing ${target}\\n`)
   }
 
   const indexTarget = repoPath(base, 'context/INDEX.md')
-  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\n`, { force, dryRun })
-  else process.stdout.write(`[skip] preserve existing ${indexTarget}\n`)
+  if (!preserveExisting || !exists(indexTarget)) writeFile(indexTarget, `${baseTemplates.index}\\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing ${indexTarget}\\n`)
 
-  const profileTarget = repoPath(base, 'context/PROJECT_PROFILE.yaml')
-  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\n`, { force, dryRun })
-  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\n`)
+  const profileTarget = repoPath(base, profilePath)
+  if (!exists(profileTarget)) writeFile(profileTarget, `${baseTemplates.profile}\\n`, { force, dryRun })
+  else process.stdout.write(`[skip] preserve existing project profile ${profileTarget}\\n`)
 
   ensureDir(repoPath(base, 'context/business'), { dryRun })
   ensureDir(repoPath(base, 'context/tech'), { dryRun })
@@ -1430,9 +1525,9 @@ function initMinimal({ locale, baseDir, force, dryRun, writeRootAgents, preserve
   }
 }
 
-function initRetrofit({ level, locale, baseDir, force, dryRun, writeRootAgents } = {}) {
+function initRetrofit({ level, locale, baseDir, profilePath, force, dryRun, writeRootAgents } = {}) {
   const base = normalizeBaseDir(baseDir)
-  initMinimal({ locale, baseDir: base, force, dryRun, writeRootAgents, preserveExisting: true })
+  initMinimal({ locale, baseDir: base, profilePath, force, dryRun, writeRootAgents, preserveExisting: true })
 
   if (level === 'L0') return
   if (level !== 'L0+' && level !== 'L1' && level !== 'L2' && level !== 'L3') {
@@ -1532,6 +1627,7 @@ function main() {
       initMinimal({
         locale: localeResult.locale,
         baseDir,
+        profilePath: opts.profilePath,
         force: opts.force,
         dryRun: opts.dryRun,
         writeRootAgents,
