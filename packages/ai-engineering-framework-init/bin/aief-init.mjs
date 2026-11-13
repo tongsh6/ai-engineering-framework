@@ -304,7 +304,7 @@ function resolveProjectRelativePath(projectRoot, input) {
 function extractDeclaredProfilePaths(agentsPath) {
   if (!isFile(agentsPath)) return []
   const content = readText(agentsPath)
-  const pattern = /^\s*(?:[-*]\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\s*[:：]\s*(?:\`([^\`]+)\`|"([^"]+)"|'([^']+)'|(\S+))\s*$/gim
+  const pattern = /^\s*(?:[-*]\s*)?(?:Profile|Project Operating Context profile|Project Profile|画像|项目画像)\s*[:：]\s*(?:`([^`]+)`|"([^"]+)"|'([^']+)'|(\S+))\s*$/gim
   const paths = []
   for (const match of content.matchAll(pattern)) {
     const value = match[1] || match[2] || match[3] || match[4]
