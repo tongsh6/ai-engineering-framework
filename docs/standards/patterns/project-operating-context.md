@@ -56,7 +56,7 @@ Schema：`docs/standards/schemas/project-profile.schema.json`。
 - kind：`ProjectProfile`
 - schemaVersion：`1.0`
 
-必填事实缺乏信息时使用显式 `unknown`；发布历史未知时 `everReleased: null`。禁止把缺失、unknown、none、not_applicable 混为一谈。当前 Schema 不定义 not_applicable；确实不适用的维度应在规范中说明理由，不得伪造 none。
+必填事实缺乏信息时使用显式 `unknown`；发布历史未知时 `everReleased: null`。禁止把缺失、unknown、none、not_applicable 混为一谈。当前 Schema 不定义 not_applicable；确实不适用的维度应在规范中说明理由，不得伪造 none。 Doctor 必须递归检查结构化 YAML 值，包括数组元素；不得仅依赖文本正则判断 unknown。
 
 Profile 只存项目事实、责任、稳定约束、当前关注点和事实治理元数据。不存任务执行进度、会话摘要、技术栈快照、Harness 模型配置或每次策略推导结果。
 
