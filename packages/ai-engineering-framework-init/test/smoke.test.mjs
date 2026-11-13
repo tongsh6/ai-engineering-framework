@@ -139,7 +139,7 @@ test('retrofit reuses an existing custom profile SSOT declared by AGENTS.md', ()
     agents = agents.replace(/^\s*Profile:.*$/m, `Profile: ${customRelativePath}`)
     agents = agents.replace('Specification: `docs/standards/patterns/project-operating-context.md`', 'Specification: `docs/standards/patterns/project-operating-context.md`')
     fs.writeFileSync(agentsPath, agents)
-    assert.ok(agents.includes('Profile: `docs/engineering/project-profile.yaml`'))
+    assert.ok(agents.includes('Profile: docs/engineering/project-profile.yaml'))
 
     const indexPath = path.join(dir, 'context', 'INDEX.md')
     let index = fs.readFileSync(indexPath, 'utf8')
