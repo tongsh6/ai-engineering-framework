@@ -11,6 +11,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Install canonical package dependencies
+        working-directory: packages/ai-engineering-framework-init
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: Run canonical package tests
         working-directory: packages/ai-engineering-framework-init
         run: node --test test/smoke.test.mjs
